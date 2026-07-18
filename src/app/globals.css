@@ -11,6 +11,8 @@
   --accent: #D4A24C;
   --success: #1B7F5A;
   --alert: #B42318;
+  --info: #2A6F9E;
+  --info-tint: rgba(42, 111, 158, 0.10);
   --border: #D0D5DD;
 
   --btn-primary-bg: #0E3A46;
@@ -42,6 +44,8 @@
   --accent: #E0B15E;
   --success: #3FB185;
   --alert: #F0776B;
+  --info: #6BAEDB;
+  --info-tint: rgba(107, 174, 219, 0.14);
   --border: #25373D;
 
   --btn-primary-bg: #E0B15E;
@@ -71,6 +75,7 @@
   --color-accent: var(--accent);
   --color-success: var(--success);
   --color-alert: var(--alert);
+  --color-info: var(--info);
   --color-border: var(--border);
   --font-sans: "IBM Plex Sans Arabic", "Inter", system-ui, -apple-system, sans-serif;
   --font-latin: "Inter", system-ui, -apple-system, sans-serif;

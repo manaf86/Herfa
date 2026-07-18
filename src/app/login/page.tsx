@@ -24,14 +24,30 @@ type Status =
   | "success"
   | "locked";
 
-const STATUS_LABELS: Record<Status, string> = {
-  idle: "عادية",
-  loading: "تحميل",
-  "field-error": "خطأ حقل",
-  "general-error": "خطأ عام",
-  success: "نجاح",
-  locked: "مقفل",
-};
+type FieldError = { field: "identifier" | "password"; message: string };
+
+function validate(identifier: string, password: string): FieldError | null {
+  const id = identifier.trim();
+  if (!id) {
+    return {
+      field: "identifier",
+      message: "يرجى إدخال البريد الإلكتروني أو رقم الجوال للمتابعة.",
+    };
+  }
+  if (/^\d/.test(id) && !/^05\d{8}$/.test(id)) {
+    return {
+      field: "identifier",
+      message: "رقم الجوال يبدأ بـ 05 ويتكوّن من ١٠ أرقام. جرّب مرة أخرى.",
+    };
+  }
+  if (!password) {
+    return {
+      field: "password",
+      message: "يرجى إدخال كلمة المرور للمتابعة.",
+    };
+  }
+  return null;
+}
 
 function scorePassword(pw: string): number {
   if (!pw) return 0;
@@ -71,24 +87,11 @@ function AppleIcon({ className }: { className?: string }) {
   );
 }
 
-function StatusPill({ children }: { children: ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
-      style={{
-        backgroundColor: "var(--accent-tint)",
-        color: "var(--heading)",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [status, setStatus] = useState<Status>("idle");
+  const [fieldError, setFieldError] = useState<FieldError | null>(null);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -104,29 +107,85 @@ export default function LoginPage() {
     return () => clearTimeout(t);
   }, [status, router]);
 
+  // اقفل تمرير الصفحة كاملةً طوال بقاء صفحة الدخول ظاهرة
+  // (يمنع body.min-h-screen في التخطيط الجذري من إظهار شريط تمرير).
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyMinH: body.style.minHeight,
+      bodyH: body.style.height,
+    };
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.minHeight = "0";
+    body.style.height = "100dvh";
+    return () => {
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.minHeight = prev.bodyMinH;
+      body.style.height = prev.bodyH;
+    };
+  }, []);
+
+  const switchTab = (next: Tab) => {
+    setTab(next);
+    setStatus("idle");
+    setFieldError(null);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // TODO: استبدل هذه المحاكاة بمصادقة حقيقية في المرحلة الثانية.
+    // المطلوب لاحقاً: استدعاء API المصادقة، ثم عيّن status وفقاً للنتيجة:
+    //   - نجاح المصادقة              → setStatus("success")
+    //   - بيانات دخول خاطئة/الحقول   → setStatus("field-error") + setFieldError({...})
+    //   - فشل شبكة/خادم              → setStatus("general-error")
+    //   - تجاوز المحاولات المسموحة    → setStatus("locked")
+
+    const err = validate(identifier, password);
+    if (err) {
+      setFieldError(err);
+      setStatus("field-error");
+      return;
+    }
+
+    setFieldError(null);
     setStatus("loading");
-    setTimeout(() => setStatus("success"), 1200);
+    setTimeout(() => {
+      setStatus("success");
+    }, 1000);
   };
 
   const isLoading = status === "loading";
-  const showFieldError = status === "field-error";
   const showGeneralError = status === "general-error";
   const showSuccess = status === "success";
   const showLocked = status === "locked";
+  const identifierError =
+    status === "field-error" && fieldError?.field === "identifier";
+  const passwordError =
+    status === "field-error" && fieldError?.field === "password";
 
   return (
     <div
-      className="min-h-screen"
-      style={{ backgroundColor: "var(--bg)", color: "var(--ink)" }}
+      className="overflow-hidden"
+      style={{
+        height: "100dvh",
+        maxHeight: "100dvh",
+        backgroundColor: "var(--bg)",
+        color: "var(--ink)",
+      }}
     >
-      <div className="flex min-h-screen flex-wrap">
+      <div className="flex h-full w-full flex-wrap overflow-hidden">
         {/* Right column — form */}
         <section
-          className="flex w-full flex-col items-center justify-center px-4 py-10 sm:px-6 lg:w-1/2 lg:px-10"
+          className="h-full w-full overflow-y-auto overflow-x-hidden lg:w-1/2"
           style={{ backgroundColor: "var(--bg)" }}
         >
+          <div className="flex min-h-full w-full flex-col items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
           <div className="w-full max-w-[440px]">
             {/* Logo + back link */}
             <div className="mb-8 flex items-center justify-between">
@@ -202,10 +261,7 @@ export default function LoginPage() {
               >
                 <TabBtn
                   active={tab === "login"}
-                  onClick={() => {
-                    setTab("login");
-                    setStatus("idle");
-                  }}
+                  onClick={() => switchTab("login")}
                   id="tab-login"
                   panel="panel-form"
                 >
@@ -213,10 +269,7 @@ export default function LoginPage() {
                 </TabBtn>
                 <TabBtn
                   active={tab === "signup"}
-                  onClick={() => {
-                    setTab("signup");
-                    setStatus("idle");
-                  }}
+                  onClick={() => switchTab("signup")}
                   id="tab-signup"
                   panel="panel-form"
                 >
@@ -254,9 +307,7 @@ export default function LoginPage() {
                   id="identifier"
                   label="البريد الإلكتروني أو رقم الجوال"
                   error={
-                    showFieldError
-                      ? "رقم الجوال يبدأ بـ 05. جرّب مرة أخرى."
-                      : undefined
+                    identifierError ? fieldError?.message : undefined
                   }
                 >
                   <input
@@ -266,10 +317,16 @@ export default function LoginPage() {
                     dir="ltr"
                     autoComplete="username"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    aria-invalid={showFieldError}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      if (identifierError) {
+                        setFieldError(null);
+                        setStatus("idle");
+                      }
+                    }}
+                    aria-invalid={identifierError}
                     aria-describedby={
-                      showFieldError ? "identifier-error" : undefined
+                      identifierError ? "identifier-error" : undefined
                     }
                     placeholder="you@example.com  أو  05xxxxxxxx"
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none"
@@ -277,7 +334,7 @@ export default function LoginPage() {
                       backgroundColor: "var(--bg)",
                       color: "var(--ink)",
                       border: `1px solid ${
-                        showFieldError ? "var(--alert)" : "var(--border)"
+                        identifierError ? "var(--alert)" : "var(--border)"
                       }`,
                     }}
                   />
@@ -287,6 +344,7 @@ export default function LoginPage() {
                 <Field
                   id="password"
                   label="كلمة المرور"
+                  error={passwordError ? fieldError?.message : undefined}
                   rightSlot={
                     !isSignup && (
                       <a
@@ -306,13 +364,25 @@ export default function LoginPage() {
                       dir="ltr"
                       autoComplete={isSignup ? "new-password" : "current-password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (passwordError) {
+                          setFieldError(null);
+                          setStatus("idle");
+                        }
+                      }}
+                      aria-invalid={passwordError}
+                      aria-describedby={
+                        passwordError ? "password-error" : undefined
+                      }
                       placeholder={isSignup ? "٨ أحرف على الأقل" : "••••••••"}
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                       style={{
                         backgroundColor: "var(--bg)",
                         color: "var(--ink)",
-                        border: "1px solid var(--border)",
+                        border: `1px solid ${
+                          passwordError ? "var(--alert)" : "var(--border)"
+                        }`,
                         paddingInlineEnd: "3rem",
                       }}
                     />
@@ -441,56 +511,13 @@ export default function LoginPage() {
               />
               محمي بمصادقة ثنائية
             </div>
-
-            {/* Status showcase (for review only) */}
-            <div
-              className="mt-8 rounded-xl p-4"
-              style={{
-                backgroundColor: "var(--surface)",
-                border: "1px dashed var(--border)",
-              }}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <p
-                  className="text-xs font-bold"
-                  style={{ color: "var(--heading)" }}
-                >
-                  عرض الحالات (للاستعراض)
-                </p>
-                <StatusPill>الحالة: {STATUS_LABELS[status]}</StatusPill>
-              </div>
-              <p
-                className="mb-3 text-xs"
-                style={{ color: "var(--muted)" }}
-              >
-                يُحذف هذا القسم عند ربط المصادقة الحقيقية.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(Object.keys(STATUS_LABELS) as Status[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setStatus(s)}
-                    className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-                    style={{
-                      backgroundColor:
-                        status === s ? "var(--heading)" : "var(--surface-2)",
-                      color:
-                        status === s ? "#FFFFFF" : "var(--ink)",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    {STATUS_LABELS[s]}
-                  </button>
-                ))}
-              </div>
-            </div>
+          </div>
           </div>
         </section>
 
         {/* Left column — visual */}
         <aside
-          className="relative hidden overflow-hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-12"
+          className="relative hidden overflow-hidden lg:flex lg:h-full lg:w-1/2 lg:flex-col lg:justify-between lg:p-12"
           style={{ backgroundColor: "#0E3A46", color: "#FFFFFF" }}
           aria-hidden
         >
