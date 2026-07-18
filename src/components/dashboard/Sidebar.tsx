@@ -14,6 +14,7 @@ import {
   Settings,
   Menu,
   X,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 import { dashboardNav, dashboardUser, type NavItem } from "../../data/dashboard";
@@ -86,9 +87,10 @@ function SidebarBody({
     <div className="flex h-full flex-col">
       {/* Brand */}
       <Link
-        href="/"
+        href="/marketplace"
         className="flex items-center gap-2 px-4 py-5"
         onClick={onNavClick}
+        aria-label="حِرفة — السوق"
       >
         <span
           className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-bold"
@@ -103,6 +105,22 @@ function SidebarBody({
           حِرفة
         </span>
       </Link>
+
+      {/* Cross-region: browse marketplace */}
+      <div className="mx-3 mb-3">
+        <Link
+          href="/marketplace"
+          onClick={onNavClick}
+          className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5"
+          style={{
+            backgroundColor: "var(--btn-primary-bg)",
+            color: "var(--btn-primary-fg)",
+          }}
+        >
+          <Store className="h-4 w-4" />
+          تصفّح السوق
+        </Link>
+      </div>
 
       <div className="mx-3 mb-4">
         {/* User card */}

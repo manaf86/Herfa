@@ -103,7 +103,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status !== "success") return;
-    const t = setTimeout(() => router.push("/dashboard"), 2000);
+    const t = setTimeout(() => router.push("/marketplace"), 2000);
     return () => clearTimeout(t);
   }, [status, router]);
 
@@ -248,7 +248,7 @@ export default function LoginPage() {
                   variant="success"
                   icon={<CheckCircle2 className="h-4 w-4" />}
                 >
-                  تم تسجيل الدخول. نحوّلك إلى لوحتك الآن…
+                  تم تسجيل الدخول. نحوّلك إلى السوق الآن…
                 </Banner>
               )}
 

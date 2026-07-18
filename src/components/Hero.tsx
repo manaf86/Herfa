@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Search, ShieldCheck, Languages, Wallet } from "lucide-react";
 
 const POPULAR_TAGS = [
@@ -63,44 +64,44 @@ export default function Hero() {
               className="flex-1 bg-transparent px-2 py-2 text-base outline-none placeholder:text-slate-400"
               style={{ color: "#101828" }}
             />
-            <button
-              type="button"
+            <Link
+              href="/marketplace"
               className="rounded-xl px-5 py-2.5 text-sm font-bold text-white"
               style={{ backgroundColor: "#0E3A46" }}
             >
               ابحث
-            </button>
+            </Link>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="text-xs text-white/60">شائع:</span>
             {POPULAR_TAGS.map((t) => (
-              <button
+              <Link
                 key={t}
-                type="button"
+                href="/marketplace"
                 className="rounded-full px-3 py-1 text-xs text-white/85 transition-colors hover:bg-white/10"
                 style={{ border: "1px solid rgba(255,255,255,0.18)" }}
               >
                 {t}
-              </button>
+              </Link>
             ))}
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
+            <Link
+              href="/marketplace"
               className="rounded-full px-6 py-3 text-sm font-bold shadow-sm transition-transform hover:-translate-y-0.5"
               style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
             >
               ابدأ مشروعك
-            </button>
-            <button
-              type="button"
+            </Link>
+            <Link
+              href="/login"
               className="rounded-full border px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
               style={{ borderColor: "rgba(255,255,255,0.3)" }}
             >
               انضم كمحترف
-            </button>
+            </Link>
           </div>
         </div>
 

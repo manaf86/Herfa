@@ -1,16 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { ShieldCheck, Clock, RefreshCcw, Check } from "lucide-react";
 import { packages, trustSignals, type PackageTier } from "../../data/gig";
 
 export default function PurchaseCard() {
   const [tier, setTier] = useState<PackageTier>("standard");
   const active = packages.find((p) => p.tier === tier)!;
+  const params = useParams<{ slug?: string }>();
+  const router = useRouter();
 
   const handleContact = () => {
-    // TODO: يفتح شات الطلب مع المصمّمة لبدء التفاوض على المتطلبات.
+    // TODO: لاحقاً — تحقّق من الجلسة، ثم إنشاء طلب حقيقي وفتح شات المتطلبات.
     // في حِرفة: العدّاد يبدأ عند اكتمال المتطلبات، لا عند الدفع.
+    const slug = params?.slug ?? "";
+    router.push(`/orders/new?gig=${encodeURIComponent(slug)}&package=${tier}`);
   };
 
   return (

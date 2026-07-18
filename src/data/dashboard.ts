@@ -174,7 +174,7 @@ export const dashboardNav: NavItem[] = [
   { label: "الطلبات", href: "/dashboard/orders", icon: "orders" },
   { label: "مساحة العمل", href: "/dashboard/workspace", icon: "workspace" },
   { label: "الرسائل", href: "/dashboard/messages", icon: "messages" },
-  { label: "خدماتي", href: "/dashboard/services", icon: "services" },
+  { label: "خدماتي", href: "/dashboard/gigs", icon: "services" },
   { label: "الأرباح", href: "/dashboard/earnings", icon: "earnings" },
   { label: "التقارير", href: "/dashboard/reports", icon: "reports" },
   { label: "الإعدادات", href: "/dashboard/settings", icon: "settings" },

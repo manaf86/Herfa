@@ -1,38 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "../../lib/useTheme";
 
+/**
+ * زر تبديل الوضع الداكن داخل الشريط الجانبي (خلفية فاتحة).
+ * يعتمد على hook useTheme الموحّد، لا يكرّر منطق localStorage.
+ */
 export default function DashboardThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const saved =
-      typeof window !== "undefined"
-        ? localStorage.getItem("herfa-theme")
-        : null;
-    const dark = saved === "dark";
-    setIsDark(dark);
-    setMounted(true);
-    if (dark) {
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-    }
-  }, []);
-
-  const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.setAttribute("data-theme", "dark");
-      localStorage.setItem("herfa-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-      localStorage.setItem("herfa-theme", "light");
-    }
-  };
+  const { isDark, mounted, toggle } = useTheme();
 
   return (
     <button

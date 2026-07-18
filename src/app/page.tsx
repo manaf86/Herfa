@@ -1,4 +1,4 @@
-import Header from "../components/Header";
+import SiteHeader from "../components/shared/SiteHeader";
 import Hero from "../components/Hero";
 import TrustBar from "../components/TrustBar";
 import Categories from "../components/Categories";
@@ -12,7 +12,7 @@ import Footer from "../components/Footer";
 export default function Home() {
   return (
     <>
-      <Header />
+      <SiteHeader variant="marketing" />
       <main>
         <Hero />
         <TrustBar />

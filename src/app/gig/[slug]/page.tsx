@@ -7,7 +7,7 @@ import {
   Award,
   MapPin,
 } from "lucide-react";
-import Header from "../../../components/Header";
+import SiteHeader from "../../../components/shared/SiteHeader";
 import PurchaseCard from "../../../components/gig/PurchaseCard";
 import {
   gigSeller,
@@ -30,7 +30,7 @@ function toArabicDigits(n: number | string): string {
 export default function GigPage() {
   return (
     <div style={{ backgroundColor: "var(--bg)", color: "var(--ink)" }}>
-      <Header />
+      <SiteHeader variant="app" loggedIn />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
