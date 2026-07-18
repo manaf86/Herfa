@@ -194,6 +194,6 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 }
 
 function toArabicDigits(n: number | string): string {
-  const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  const map = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   return String(n).replace(/\d/g, (d) => map[Number(d)]);
 }

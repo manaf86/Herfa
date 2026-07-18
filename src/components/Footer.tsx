@@ -103,7 +103,7 @@ export default function Footer() {
           className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs sm:flex-row"
           style={{ borderColor: "var(--border)", color: "var(--muted)" }}
         >
-          <p>© ٢٠٢٦ حِرفة. جميع الحقوق محفوظة.</p>
+          <p>© 2026 حِرفة. جميع الحقوق محفوظة.</p>
           <p>صُنعت بحرفية في الرياض · دبي · القاهرة</p>
         </div>
       </div>

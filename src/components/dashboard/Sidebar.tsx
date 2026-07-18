@@ -155,7 +155,7 @@ function SidebarBody({
                   color: "var(--accent)",
                 }}
               >
-                مؤشر حِرفة ٨٧
+                مؤشر حِرفة 87
               </span>
             </div>
           </div>

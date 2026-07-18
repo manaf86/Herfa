@@ -49,15 +49,15 @@ export const stats: Stat[] = [
   {
     key: "active",
     label: "طلبات نشطة",
-    value: "١٢",
-    note: "+٢ عن الأسبوع الماضي",
+    value: "12",
+    note: "+2 عن الأسبوع الماضي",
     color: "heading",
     icon: "activity",
   },
   {
     key: "action",
     label: "تحتاج إجراءً منك",
-    value: "٣",
+    value: "3",
     note: "ردود ومراجعات معلّقة",
     color: "accent",
     icon: "clock",
@@ -65,7 +65,7 @@ export const stats: Stat[] = [
   {
     key: "late",
     label: "متأخرة",
-    value: "١",
+    value: "1",
     note: "طلب تجاوز موعده",
     color: "alert",
     icon: "alert",
@@ -73,7 +73,7 @@ export const stats: Stat[] = [
   {
     key: "earnings",
     label: "الأرباح في الخزنة",
-    value: "٨٬٤٥٠ ر.س",
+    value: "8,450 ر.س",
     note: "قابلة للسحب بعد الاعتماد",
     color: "success",
     icon: "wallet",
@@ -89,20 +89,20 @@ export const herfaIndex = {
     { name: "سرعة الرد", weight: 20, value: 88 },
     { name: "الاعتماد من أول مرة", weight: 20, value: 79 },
   ] as IndexComponent[],
-  changeReason: "انخفض ٣ نقاط لأن طلباً سُلّم متأخراً يوم ١٢ يوليو.",
+  changeReason: "انخفض 3 نقاط لأن طلباً سُلّم متأخراً يوم 12 يوليو.",
   guidance:
     "سلّم طلباتك القادمة في موعدها لاستعادة النقاط خلال أسبوعين.",
 };
 
 export const funnel = {
   stages: [
-    { label: "ظهور", display: "٢٬٤٠٠", value: 2400 },
-    { label: "نقرة", display: "٧٢٠", value: 720 },
-    { label: "محادثة", display: "٢١٠", value: 210 },
-    { label: "طلب", display: "٣٢", value: 32 },
+    { label: "ظهور", display: "2,400", value: 2400 },
+    { label: "نقرة", display: "720", value: 720 },
+    { label: "محادثة", display: "210", value: 210 },
+    { label: "طلب", display: "32", value: 32 },
   ] as FunnelStage[],
   diagnosis:
-    "تفقد ٧٠٪ من الزوار عند صفحة الخدمة قبل النقرة. جرّب صورة غلاف أوضح وعنواناً أقصر.",
+    "تفقد 70٪ من الزوار عند صفحة الخدمة قبل النقرة. جرّب صورة غلاف أوضح وعنواناً أقصر.",
 };
 
 export const recentOrders: Order[] = [
@@ -110,7 +110,7 @@ export const recentOrders: Order[] = [
     id: "o-1024",
     title: "تصميم هوية بصرية",
     client: "متجر ألبان سنابل",
-    amount: "٢٬٥٠٠ ر.س",
+    amount: "2,500 ر.س",
     delivery: "قيد التنفيذ",
     status: "in-progress",
   },
@@ -118,32 +118,32 @@ export const recentOrders: Order[] = [
     id: "o-1023",
     title: "كتابة محتوى موقع",
     client: "شركة نون",
-    amount: "١٬٢٠٠ ر.س",
-    delivery: "١٣ يوليو",
+    amount: "1,200 ر.س",
+    delivery: "13 يوليو",
     status: "awaiting-approval",
   },
   {
     id: "o-1022",
     title: "تصميم قائمة طعام",
     client: "مطعم السرايا",
-    amount: "٣٬٤٠٠ ر.س",
-    delivery: "١٢ يوليو",
+    amount: "3,400 ر.س",
+    delivery: "12 يوليو",
     status: "late",
   },
   {
     id: "o-1021",
     title: "تصميم منشورات إعلامية",
     client: "عيادة نور",
-    amount: "٩٠٠ ر.س",
-    delivery: "١٠ يوليو",
+    amount: "900 ر.س",
+    delivery: "10 يوليو",
     status: "completed",
   },
   {
     id: "o-1020",
     title: "مونتاج فيديو تعليمي",
     client: "أكاديمية سطر",
-    amount: "١٬٨٠٠ ر.س",
-    delivery: "٨ يوليو",
+    amount: "1,800 ر.س",
+    delivery: "8 يوليو",
     status: "completed",
   },
 ];

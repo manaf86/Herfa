@@ -19,19 +19,19 @@ import Reveal from "./Reveal";
 type Cat = { icon: LucideIcon; label: string; count: string };
 
 const CATS: Cat[] = [
-  { icon: Palette, label: "التصميم والجرافيك", count: "٢٠٣" },
-  { icon: Code, label: "البرمجة والتقنية", count: "١٨٧" },
-  { icon: Megaphone, label: "التسويق الرقمي", count: "١٥٦" },
-  { icon: Languages, label: "الكتابة والترجمة", count: "١٤٢" },
-  { icon: Clapperboard, label: "الفيديو والأنيميشن", count: "١١٨" },
-  { icon: Music, label: "الموسيقى والصوتيات", count: "٨٤" },
-  { icon: Bot, label: "خدمات الذكاء الاصطناعي", count: "٩٦" },
-  { icon: Briefcase, label: "الأعمال", count: "١٣١" },
-  { icon: Lightbulb, label: "الاستشارات", count: "٧٢" },
-  { icon: Database, label: "البيانات", count: "٦٨" },
-  { icon: Wallet, label: "التمويل", count: "٥٤" },
-  { icon: Camera, label: "التصوير", count: "٩١" },
-  { icon: Sparkles, label: "التطوير الشخصي", count: "٤٧" },
+  { icon: Palette, label: "التصميم والجرافيك", count: "203" },
+  { icon: Code, label: "البرمجة والتقنية", count: "187" },
+  { icon: Megaphone, label: "التسويق الرقمي", count: "156" },
+  { icon: Languages, label: "الكتابة والترجمة", count: "142" },
+  { icon: Clapperboard, label: "الفيديو والأنيميشن", count: "118" },
+  { icon: Music, label: "الموسيقى والصوتيات", count: "84" },
+  { icon: Bot, label: "خدمات الذكاء الاصطناعي", count: "96" },
+  { icon: Briefcase, label: "الأعمال", count: "131" },
+  { icon: Lightbulb, label: "الاستشارات", count: "72" },
+  { icon: Database, label: "البيانات", count: "68" },
+  { icon: Wallet, label: "التمويل", count: "54" },
+  { icon: Camera, label: "التصوير", count: "91" },
+  { icon: Sparkles, label: "التطوير الشخصي", count: "47" },
 ];
 
 export default function Categories() {
@@ -49,7 +49,7 @@ export default function Categories() {
               className="mt-3 text-base"
               style={{ color: "var(--muted)" }}
             >
-              ١٣ فئة تغطي أهم الخدمات الرقمية — من التصميم إلى الذكاء الاصطناعي.
+              13 فئة تغطي أهم الخدمات الرقمية — من التصميم إلى الذكاء الاصطناعي.
             </p>
           </div>
         </Reveal>

@@ -23,7 +23,7 @@ import {
 } from "../../../data/gig";
 
 function toArabicDigits(n: number | string): string {
-  const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  const map = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   return String(n).replace(/\d/g, (d) => map[Number(d)]);
 }
 
@@ -118,7 +118,7 @@ export default function GigPage() {
                       className="font-bold"
                       style={{ color: "var(--heading)" }}
                     >
-                      {toArabicDigits(gigSeller.rating.toString().replace(".", "٫"))}
+                      {toArabicDigits(gigSeller.rating.toString().replace(".", "."))}
                     </span>
                     ({toArabicDigits(gigSeller.ratingCount)})
                   </span>
@@ -409,7 +409,7 @@ export default function GigPage() {
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     <MiniStat
                       value={toArabicDigits(
-                        gigSeller.metrics.avgRating.toString().replace(".", "٫")
+                        gigSeller.metrics.avgRating.toString().replace(".", ".")
                       )}
                       label="متوسط التقييم"
                     />
@@ -451,7 +451,7 @@ export default function GigPage() {
                       style={{ color: "var(--heading)" }}
                     >
                       {toArabicDigits(
-                        gigSeller.rating.toString().replace(".", "٫")
+                        gigSeller.rating.toString().replace(".", ".")
                       )}
                     </p>
                     <div className="mt-2 flex gap-0.5">

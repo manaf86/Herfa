@@ -37,7 +37,7 @@ function validate(identifier: string, password: string): FieldError | null {
   if (/^\d/.test(id) && !/^05\d{8}$/.test(id)) {
     return {
       field: "identifier",
-      message: "رقم الجوال يبدأ بـ 05 ويتكوّن من ١٠ أرقام. جرّب مرة أخرى.",
+      message: "رقم الجوال يبدأ بـ 05 ويتكوّن من 10 أرقام. جرّب مرة أخرى.",
     };
   }
   if (!password) {
@@ -237,7 +237,7 @@ export default function LoginPage() {
                   variant="warn"
                   icon={<Lock className="h-4 w-4" />}
                 >
-                  أُقفل حسابك مؤقتاً بعد عدة محاولات فاشلة. جرّب بعد ١٥ دقيقة،{" "}
+                  أُقفل حسابك مؤقتاً بعد عدة محاولات فاشلة. جرّب بعد 15 دقيقة،{" "}
                   <a href="#" className="font-bold underline">
                     أو أعد تعيين كلمة المرور الآن.
                   </a>
@@ -375,7 +375,7 @@ export default function LoginPage() {
                       aria-describedby={
                         passwordError ? "password-error" : undefined
                       }
-                      placeholder={isSignup ? "٨ أحرف على الأقل" : "••••••••"}
+                      placeholder={isSignup ? "8 أحرف على الأقل" : "••••••••"}
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                       style={{
                         backgroundColor: "var(--bg)",
@@ -601,7 +601,7 @@ export default function LoginPage() {
               className="text-3xl font-bold"
               style={{ color: "#D4A24C" }}
             >
-              ٤٫٢ مليون ريال
+              4.2 مليون ريال
             </p>
             <p className="mt-2 text-sm text-white/80">
               صُرفت للمحترفين على حِرفة هذا الشهر.

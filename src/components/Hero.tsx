@@ -129,7 +129,7 @@ export default function Hero() {
                     border: "3px solid var(--accent)",
                   }}
                 >
-                  ٩٢
+                  92
                 </div>
                 <div>
                   <p
@@ -174,7 +174,7 @@ export default function Hero() {
                     className="text-lg font-bold"
                     style={{ color: "var(--ink)" }}
                   >
-                    ٤٬٥٠٠ ر.س
+                    4,500 ر.س
                   </p>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 // TODO: تُستبدل ببيانات حقيقية من قاعدة البيانات لاحقاً.
-// بيانات وهمية توضيحية لسوق الخدمات (٣٦ خدمة موزّعة على ١٣ فئة).
+// بيانات وهمية توضيحية لسوق الخدمات (36 خدمة موزّعة على 13 فئة).
 
 export type CategorySlug =
   | "design"
@@ -90,17 +90,17 @@ const AVATAR_BGS = [
 ];
 
 function ar(n: number | string): string {
-  const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  const map = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   return String(n).replace(/\d/g, (d) => map[Number(d)]);
 }
 
 function priceAr(v: number): string {
-  const s = v.toLocaleString("en-US").replace(/,/g, "٬");
+  const s = v.toLocaleString("en-US").replace(/,/g, ",");
   return `${ar(s)} ر.س`;
 }
 
 function ratingAr(r: number): string {
-  return ar(r.toFixed(1).replace(".", "٫"));
+  return ar(r.toFixed(1).replace(".", "."));
 }
 
 type Raw = Omit<
@@ -110,7 +110,7 @@ type Raw = Omit<
   seller: { name: string; country: string };
 };
 
-// ٣٦ خدمة — عناوين مختلفة الأطوال، أسماء متنوّعة، أسعار متفاوتة، ~٣٠٪ فقط بشارة.
+// 36 خدمة — عناوين مختلفة الأطوال، أسماء متنوّعة، أسعار متفاوتة، ~30٪ فقط بشارة.
 const RAW: Raw[] = [
   // ── التصميم والجرافيك (4) ─────────────────────────────────────────
   {
@@ -123,7 +123,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 213,
     priceValue: 450,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
     ordersInQueue: 6,
   },
   {
@@ -136,19 +136,19 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 178,
     priceValue: 380,
-    deliveryDays: "٣ أيام",
+    deliveryDays: "3 أيام",
   },
   {
     id: "s-103",
     slug: "social-media-templates",
-    title: "سأصمّم قوالب سوشيال ميديا ٢٠ منشوراً بتصميم متسق",
+    title: "سأصمّم قوالب سوشيال ميديا 20 منشوراً بتصميم متسق",
     category: "design",
     seller: { name: "دانة الكندري", country: "الكويت" },
     badge: null,
     rating: 4.7,
     ratingCount: 92,
     priceValue: 220,
-    deliveryDays: "٤ أيام",
+    deliveryDays: "4 أيام",
   },
   {
     id: "s-104",
@@ -160,7 +160,7 @@ const RAW: Raw[] = [
     rating: 4.6,
     ratingCount: 47,
     priceValue: 175,
-    deliveryDays: "٦ أيام",
+    deliveryDays: "6 أيام",
   },
 
   // ── البرمجة والتقنية (4) ──────────────────────────────────────────
@@ -174,7 +174,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 264,
     priceValue: 1200,
-    deliveryDays: "١٤ يوماً",
+    deliveryDays: "14 يوماً",
     ordersInQueue: 4,
   },
   {
@@ -187,7 +187,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 186,
     priceValue: 2750,
-    deliveryDays: "٢١ يوماً",
+    deliveryDays: "21 يوماً",
   },
   {
     id: "s-203",
@@ -211,7 +211,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 71,
     priceValue: 640,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
   },
 
   // ── التسويق الرقمي (3) ─────────────────────────────────────────────
@@ -237,7 +237,7 @@ const RAW: Raw[] = [
     rating: 4.7,
     ratingCount: 89,
     priceValue: 450,
-    deliveryDays: "٤ أيام",
+    deliveryDays: "4 أيام",
   },
   {
     id: "s-303",
@@ -249,7 +249,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 34,
     priceValue: 950,
-    deliveryDays: "٧ أيام",
+    deliveryDays: "7 أيام",
   },
 
   // ── الكتابة (2) ───────────────────────────────────────────────────
@@ -263,7 +263,7 @@ const RAW: Raw[] = [
     rating: 5.0,
     ratingCount: 298,
     priceValue: 140,
-    deliveryDays: "٣ أيام",
+    deliveryDays: "3 أيام",
   },
   {
     id: "s-402",
@@ -294,14 +294,14 @@ const RAW: Raw[] = [
   {
     id: "s-501",
     slug: "60-second-promo-video",
-    title: "سأنتج فيديو ترويجياً ٦٠ ثانية بجودة سينمائية",
+    title: "سأنتج فيديو ترويجياً 60 ثانية بجودة سينمائية",
     category: "video",
     seller: { name: "فيصل التركي", country: "الرياض" },
     badge: "featured",
     rating: 4.8,
     ratingCount: 137,
     priceValue: 890,
-    deliveryDays: "٧ أيام",
+    deliveryDays: "7 أيام",
   },
   {
     id: "s-502",
@@ -313,7 +313,7 @@ const RAW: Raw[] = [
     rating: 4.6,
     ratingCount: 58,
     priceValue: 320,
-    deliveryDays: "٤ أيام",
+    deliveryDays: "4 أيام",
   },
   {
     id: "s-503",
@@ -325,7 +325,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 41,
     priceValue: 750,
-    deliveryDays: "١٠ أيام",
+    deliveryDays: "10 أيام",
   },
 
   // ── الموسيقى والصوتيات (2) ────────────────────────────────────────
@@ -339,7 +339,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 37,
     priceValue: 425,
-    deliveryDays: "٦ أيام",
+    deliveryDays: "6 أيام",
   },
   {
     id: "s-602",
@@ -351,21 +351,21 @@ const RAW: Raw[] = [
     rating: 5.0,
     ratingCount: 156,
     priceValue: 180,
-    deliveryDays: "٣ أيام",
+    deliveryDays: "3 أيام",
   },
 
   // ── الذكاء الاصطناعي (3) ─────────────────────────────────────────
   {
     id: "s-701",
     slug: "ai-chatbot-for-your-website",
-    title: "سأبني لك روبوت محادثة ذكياً لموقعك يجيب عملاءك ٢٤/٧",
+    title: "سأبني لك روبوت محادثة ذكياً لموقعك يجيب عملاءك 24/7",
     category: "ai",
     seller: { name: "عبدالله الرشيدي", country: "الأحساء" },
     badge: "rising",
     rating: 4.9,
     ratingCount: 63,
     priceValue: 1450,
-    deliveryDays: "٩ أيام",
+    deliveryDays: "9 أيام",
   },
   {
     id: "s-702",
@@ -377,7 +377,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 28,
     priceValue: 1150,
-    deliveryDays: "٧ أيام",
+    deliveryDays: "7 أيام",
   },
   {
     id: "s-703",
@@ -403,7 +403,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 74,
     priceValue: 1350,
-    deliveryDays: "١٤ يوماً",
+    deliveryDays: "14 يوماً",
   },
   {
     id: "s-802",
@@ -415,7 +415,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 112,
     priceValue: 690,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
   },
 
   // ── الاستشارات (3) ────────────────────────────────────────────────
@@ -429,19 +429,19 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 46,
     priceValue: 1400,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
   },
   {
     id: "s-902",
     slug: "product-strategy-session",
-    title: "سأجري معك جلسة استراتيجية منتج مدّتها ٩٠ دقيقة",
+    title: "سأجري معك جلسة استراتيجية منتج مدّتها 90 دقيقة",
     category: "consulting",
     seller: { name: "زياد بلبيسي", country: "عمّان" },
     badge: null,
     rating: 4.8,
     ratingCount: 31,
     priceValue: 890,
-    deliveryDays: "٣ أيام",
+    deliveryDays: "3 أيام",
   },
   {
     id: "s-903",
@@ -467,7 +467,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 55,
     priceValue: 780,
-    deliveryDays: "٧ أيام",
+    deliveryDays: "7 أيام",
   },
   {
     id: "s-1002",
@@ -479,7 +479,7 @@ const RAW: Raw[] = [
     rating: 4.7,
     ratingCount: 143,
     priceValue: 235,
-    deliveryDays: "٤ أيام",
+    deliveryDays: "4 أيام",
   },
 
   // ── التمويل (2) ───────────────────────────────────────────────────
@@ -493,7 +493,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 38,
     priceValue: 1650,
-    deliveryDays: "١٠ أيام",
+    deliveryDays: "10 أيام",
   },
   {
     id: "s-1102",
@@ -505,7 +505,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 87,
     priceValue: 480,
-    deliveryDays: "١٤ يوماً",
+    deliveryDays: "14 يوماً",
   },
 
   // ── التصوير (2) ───────────────────────────────────────────────────
@@ -519,7 +519,7 @@ const RAW: Raw[] = [
     rating: 4.7,
     ratingCount: 91,
     priceValue: 260,
-    deliveryDays: "٤ أيام",
+    deliveryDays: "4 أيام",
   },
   {
     id: "s-1202",
@@ -531,7 +531,7 @@ const RAW: Raw[] = [
     rating: 4.9,
     ratingCount: 26,
     priceValue: 425,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
   },
 
   // ── التطوير الشخصي (2) ────────────────────────────────────────────
@@ -545,7 +545,7 @@ const RAW: Raw[] = [
     rating: 4.8,
     ratingCount: 44,
     priceValue: 320,
-    deliveryDays: "٧ أيام",
+    deliveryDays: "7 أيام",
   },
   {
     id: "s-1302",
@@ -557,7 +557,7 @@ const RAW: Raw[] = [
     rating: 4.6,
     ratingCount: 17,
     priceValue: 190,
-    deliveryDays: "٥ أيام",
+    deliveryDays: "5 أيام",
   },
   {
     id: "s-1303",

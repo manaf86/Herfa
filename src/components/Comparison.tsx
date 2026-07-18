@@ -4,7 +4,7 @@ import Reveal from "./Reveal";
 type Row = { label: string; herfa: string | boolean; others: string | boolean };
 
 const ROWS: Row[] = [
-  { label: "العمولة", herfa: "١٥٪ → ٦٪", others: "٢٠٪ ثابتة" },
+  { label: "العمولة", herfa: "15٪ → 6٪", others: "20٪ ثابتة" },
   { label: "دعم بشري في النزاع", herfa: true, others: false },
   { label: "حق الاستئناف", herfa: true, others: false },
   { label: "واجهة عربية أصلية", herfa: true, others: false },
