@@ -24,9 +24,26 @@ type Status =
   | "success"
   | "locked";
 
-type FieldError = { field: "identifier" | "password"; message: string };
+type FieldError = {
+  field: "name" | "identifier" | "password";
+  message: string;
+};
 
-function validate(identifier: string, password: string): FieldError | null {
+function validate(
+  identifier: string,
+  password: string,
+  opts: { name?: string; requireName: boolean; requireStrongPw: boolean },
+): FieldError | null {
+  if (opts.requireName) {
+    const n = (opts.name ?? "").trim();
+    if (n.length < 2) {
+      return {
+        field: "name",
+        message: "يرجى إدخال اسمك الكامل للمتابعة.",
+      };
+    }
+  }
+
   const id = identifier.trim();
   if (!id) {
     return {
@@ -44,6 +61,12 @@ function validate(identifier: string, password: string): FieldError | null {
     return {
       field: "password",
       message: "يرجى إدخال كلمة المرور للمتابعة.",
+    };
+  }
+  if (opts.requireStrongPw && password.length < 8) {
+    return {
+      field: "password",
+      message: "كلمة المرور 8 أحرف على الأقل عند إنشاء حساب جديد.",
     };
   }
   return null;
@@ -93,9 +116,12 @@ export default function LoginPage() {
   const [status, setStatus] = useState<Status>("idle");
   const [fieldError, setFieldError] = useState<FieldError | null>(null);
 
+  const [name, setName] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [generalErrorMsg, setGeneralErrorMsg] = useState<string | null>(null);
+  const [lockedMsg, setLockedMsg] = useState<string | null>(null);
 
   const isSignup = tab === "signup";
   const pwScore = useMemo(() => scorePassword(password), [password]);
@@ -134,19 +160,20 @@ export default function LoginPage() {
     setTab(next);
     setStatus("idle");
     setFieldError(null);
+    setGeneralErrorMsg(null);
+    setLockedMsg(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeneralErrorMsg(null);
+    setLockedMsg(null);
 
-    // TODO: استبدل هذه المحاكاة بمصادقة حقيقية في المرحلة الثانية.
-    // المطلوب لاحقاً: استدعاء API المصادقة، ثم عيّن status وفقاً للنتيجة:
-    //   - نجاح المصادقة              → setStatus("success")
-    //   - بيانات دخول خاطئة/الحقول   → setStatus("field-error") + setFieldError({...})
-    //   - فشل شبكة/خادم              → setStatus("general-error")
-    //   - تجاوز المحاولات المسموحة    → setStatus("locked")
-
-    const err = validate(identifier, password);
+    const err = validate(identifier, password, {
+      name,
+      requireName: isSignup,
+      requireStrongPw: isSignup,
+    });
     if (err) {
       setFieldError(err);
       setStatus("field-error");
@@ -155,15 +182,83 @@ export default function LoginPage() {
 
     setFieldError(null);
     setStatus("loading");
-    setTimeout(() => {
-      setStatus("success");
-    }, 1000);
+
+    const url = isSignup ? "/api/auth/register" : "/api/auth/login";
+    const id = identifier.trim();
+    const isPhone = /^05\d{8}$/.test(id);
+    const body = isSignup
+      ? {
+          name: name.trim(),
+          password,
+          ...(isPhone ? { phone: id } : { email: id.toLowerCase() }),
+        }
+      : { identifier: id, password };
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "same-origin",
+      });
+
+      // نقرأ الجسم مرة واحدة فقط (نتجنّب "body already read").
+      const data: { error?: string; user?: unknown } = await res
+        .json()
+        .catch(() => ({}));
+
+      if (res.ok) {
+        setStatus("success");
+        return;
+      }
+
+      // معالجة الأخطاء الرسمية من الـ API:
+      // 400/409 → خطأ حقل مصوّب على identifier أو password
+      // 401     → خطأ عام (خطأ اعتماد)
+      // 403     → حالة مقفل
+      // 5xx     → خطأ شبكة/خادم
+      if (res.status === 400 || res.status === 409) {
+        setFieldError({
+          field: "identifier",
+          message: data.error ?? "بيانات غير صالحة.",
+        });
+        setStatus("field-error");
+        return;
+      }
+      if (res.status === 401) {
+        setGeneralErrorMsg(
+          data.error ?? "البريد أو كلمة المرور غير صحيحة.",
+        );
+        setStatus("general-error");
+        return;
+      }
+      if (res.status === 403) {
+        setLockedMsg(
+          data.error ?? "أُقفل حسابك مؤقتاً. راسل الدعم لتفعيله.",
+        );
+        setStatus("locked");
+        return;
+      }
+
+      setGeneralErrorMsg(
+        data.error ?? "تعذّر إتمام العملية. أعد المحاولة بعد لحظات.",
+      );
+      setStatus("general-error");
+    } catch {
+      // فشل شبكة (OFFLINE/DNS/timeout)
+      setGeneralErrorMsg(
+        "تعذّر الاتصال بالخادم. تحقّق من اتصالك بالإنترنت ثم أعد المحاولة.",
+      );
+      setStatus("general-error");
+    }
   };
 
   const isLoading = status === "loading";
   const showGeneralError = status === "general-error";
   const showSuccess = status === "success";
   const showLocked = status === "locked";
+  const nameError =
+    status === "field-error" && fieldError?.field === "name";
   const identifierError =
     status === "field-error" && fieldError?.field === "identifier";
   const passwordError =
@@ -223,13 +318,14 @@ export default function LoginPage() {
                 boxShadow: "var(--shadow-md)",
               }}
             >
-              {/* General banners */}
+              {/* General banners — الرسائل من الـ API عند توفّرها */}
               {showGeneralError && (
                 <Banner
                   variant="alert"
                   icon={<AlertCircle className="h-4 w-4" />}
                 >
-                  تعذّر تسجيل الدخول. تحقّق من اتصالك بالإنترنت ثم أعد المحاولة.
+                  {generalErrorMsg ??
+                    "تعذّر تسجيل الدخول. تحقّق من اتصالك بالإنترنت ثم أعد المحاولة."}
                 </Banner>
               )}
               {showLocked && (
@@ -237,10 +333,8 @@ export default function LoginPage() {
                   variant="warn"
                   icon={<Lock className="h-4 w-4" />}
                 >
-                  أُقفل حسابك مؤقتاً بعد عدة محاولات فاشلة. جرّب بعد 15 دقيقة،{" "}
-                  <a href="#" className="font-bold underline">
-                    أو أعد تعيين كلمة المرور الآن.
-                  </a>
+                  {lockedMsg ??
+                    "أُقفل حسابك مؤقتاً. راسل الدعم لتفعيله قبل المتابعة."}
                 </Banner>
               )}
               {showSuccess && (
@@ -248,7 +342,9 @@ export default function LoginPage() {
                   variant="success"
                   icon={<CheckCircle2 className="h-4 w-4" />}
                 >
-                  تم تسجيل الدخول. نحوّلك إلى السوق الآن…
+                  {isSignup
+                    ? "تم إنشاء حسابك. نحوّلك إلى السوق الآن…"
+                    : "تم تسجيل الدخول. نحوّلك إلى السوق الآن…"}
                 </Banner>
               )}
 
@@ -302,6 +398,40 @@ export default function LoginPage() {
                 className="mt-6 space-y-4"
                 noValidate
               >
+                {/* Name — signup only */}
+                {isSignup && (
+                  <Field
+                    id="name"
+                    label="الاسم الكامل"
+                    error={nameError ? fieldError?.message : undefined}
+                  >
+                    <input
+                      id="name"
+                      type="text"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (nameError) {
+                          setFieldError(null);
+                          setStatus("idle");
+                        }
+                      }}
+                      aria-invalid={nameError}
+                      aria-describedby={nameError ? "name-error" : undefined}
+                      placeholder="مثال: أحمد الغامدي"
+                      className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                      style={{
+                        backgroundColor: "var(--bg)",
+                        color: "var(--ink)",
+                        border: `1px solid ${
+                          nameError ? "var(--alert)" : "var(--border)"
+                        }`,
+                      }}
+                    />
+                  </Field>
+                )}
+
                 {/* Identifier */}
                 <Field
                   id="identifier"

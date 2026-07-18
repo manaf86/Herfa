@@ -1,0 +1,49 @@
+// حِرفة — نموذج المرحلة الأولى (MVP): مصادقة وجلسات فقط.
+// TODO: نضيف Orders / Milestones / Escrow في المرحلة اللاحقة.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String?    @unique
+  phone         String?    @unique
+  passwordHash  String?
+  name          String
+  avatarLetter  String     @default("أ")
+  role          UserRole   @default(BUYER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  sessions      Session[]
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  BOTH
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique @default(uuid())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
