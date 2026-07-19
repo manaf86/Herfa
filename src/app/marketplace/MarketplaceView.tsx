@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sliders, PackageSearch } from "lucide-react";
+import { Sliders, PackageSearch, Info } from "lucide-react";
 import SiteHeader from "../../components/shared/SiteHeader";
 import CategoryStrip from "../../components/marketplace/CategoryStrip";
 import GigCard from "../../components/marketplace/GigCard";
+import RealGigCard, { type ApiGig } from "../../components/marketplace/RealGigCard";
 import {
   services,
   sortOptions,
@@ -27,12 +28,33 @@ export default function MarketplaceView() {
     readCategoryParam(searchParams.get("category"))
   );
   const [sort, setSort] = useState<string>("newest");
+  const [realGigs, setRealGigs] = useState<ApiGig[]>([]);
 
   // زامِن مع تغييرات URL (رجوع/تقدّم) بلا حلقة.
   useEffect(() => {
     const next = readCategoryParam(searchParams.get("category"));
     setCategory((prev) => (prev === next ? prev : next));
   }, [searchParams]);
+
+  // اجلب الخدمات الحقيقية من الـ API. فشل الشبكة لا يكسر الصفحة.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/gigs?limit=36", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) return;
+        const data: { gigs: ApiGig[] } = await res.json();
+        if (!cancelled) setRealGigs(data.gigs ?? []);
+      } catch {
+        // نتجاهل — البيانات التجريبية تكفي كـ fallback.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCategoryChange = (next: CategorySlug | "all") => {
     setCategory(next);
@@ -48,10 +70,20 @@ export default function MarketplaceView() {
     [category]
   );
 
+  const filteredReal = useMemo(
+    () =>
+      category === "all"
+        ? realGigs
+        : realGigs.filter((g) => g.categoryId === category),
+    [category, realGigs],
+  );
+
   const activeLabel =
     category === "all"
       ? "خدمات مميّزة"
       : categories.find((c) => c.slug === category)?.label ?? "خدمات مميّزة";
+
+  const totalCount = filteredReal.length + filtered.length;
 
   return (
     <div
@@ -75,8 +107,8 @@ export default function MarketplaceView() {
               className="mt-1 text-sm"
               style={{ color: "var(--muted)" }}
             >
-              {filtered.length > 0
-                ? `${toArabicDigits(filtered.length)} خدمة متاحة`
+              {totalCount > 0
+                ? `${toArabicDigits(totalCount)} خدمة متاحة`
                 : "لا توجد نتائج"}
             </p>
           </div>
@@ -125,22 +157,93 @@ export default function MarketplaceView() {
           </div>
         </header>
 
-        {/* Grid or empty state */}
-        {filtered.length > 0 ? (
-          <div
-            className="grid gap-5"
-            style={{
-              gridTemplateColumns:
-                "repeat(auto-fill, minmax(260px, 1fr))",
-            }}
-          >
-            {filtered.map((s) => (
-              <GigCard key={s.id} service={s} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState onReset={() => handleCategoryChange("all")} />
+        {/* قسم "خدمات المنصة" — الحقيقية من قاعدة البيانات */}
+        {filteredReal.length > 0 && (
+          <section className="mb-10">
+            <div className="mb-4 flex items-baseline gap-2">
+              <h2
+                className="text-lg font-bold"
+                style={{ color: "var(--heading)" }}
+              >
+                خدمات المنصة
+              </h2>
+              <span
+                className="text-xs"
+                style={{ color: "var(--muted)" }}
+              >
+                {toArabicDigits(filteredReal.length)} خدمة حقيقية
+              </span>
+            </div>
+            <div
+              className="grid gap-5"
+              style={{
+                gridTemplateColumns:
+                  "repeat(auto-fill, minmax(260px, 1fr))",
+              }}
+            >
+              {filteredReal.map((g) => (
+                <RealGigCard key={g.id} gig={g} />
+              ))}
+            </div>
+          </section>
         )}
+
+        {/* قسم "خدمات تجريبية" — البيانات الوهمية للعرض */}
+        {/*
+          ملاحظة: هذا القسم مؤقّت لعرض التصميم قبل امتلاء المنصة.
+          سيختفي حين تصبح خدمات المنصة كثيرة.
+        */}
+        {filtered.length > 0 ? (
+          <section>
+            {filteredReal.length > 0 && (
+              <>
+                <div className="mb-4 flex items-baseline gap-2">
+                  <h2
+                    className="text-lg font-bold"
+                    style={{ color: "var(--heading)" }}
+                  >
+                    خدمات تجريبية
+                  </h2>
+                  <span
+                    className="text-xs"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    {toArabicDigits(filtered.length)} خدمة عرض
+                  </span>
+                </div>
+                <div
+                  className="mb-4 flex items-start gap-2 rounded-xl p-3 text-sm"
+                  style={{
+                    backgroundColor: "var(--info-tint)",
+                    border: "1px solid var(--info)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <Info
+                    className="mt-0.5 h-4 w-4 shrink-0"
+                    style={{ color: "var(--info)" }}
+                  />
+                  <span className="leading-relaxed">
+                    هذه بيانات تجريبية — ستختفي حين تملأ المنصة بخدمات حقيقية.
+                  </span>
+                </div>
+              </>
+            )}
+            <div
+              className="grid gap-5"
+              style={{
+                gridTemplateColumns:
+                  "repeat(auto-fill, minmax(260px, 1fr))",
+              }}
+            >
+              {filtered.map((s) => (
+                <GigCard key={s.id} service={s} />
+              ))}
+            </div>
+          </section>
+        ) : filteredReal.length === 0 ? (
+          <EmptyState onReset={() => handleCategoryChange("all")} />
+        ) : null}
       </main>
     </div>
   );

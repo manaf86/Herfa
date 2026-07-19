@@ -1,4 +1,6 @@
-// حِرفة — نموذج المرحلة الأولى (MVP): مصادقة وجلسات فقط.
+// حِرفة — نموذج المرحلة الأولى (MVP):
+//   - المستخدمون + الجلسات (auth)
+//   - الخدمات (Gig) + الباقات (Package)
 // TODO: نضيف Orders / Milestones / Escrow في المرحلة اللاحقة.
 
 generator client {
@@ -23,6 +25,7 @@ model User {
   updatedAt     DateTime   @updatedAt
 
   sessions      Session[]
+  gigs          Gig[]
 }
 
 enum UserRole {
@@ -46,4 +49,60 @@ model Session {
 
   @@index([token])
   @@index([userId])
+}
+
+// ═══════════ الخدمات (Gig) ═══════════
+
+model Gig {
+  id           String       @id @default(uuid())
+  slug         String       @unique
+  sellerId     String
+  seller       User         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  categoryId   String
+  tags         String[]
+  status       GigStatus    @default(DRAFT)
+  aiDisclosure AiDisclosure @default(HUMAN)
+  packages     Package[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([categoryId, status])
+  @@index([sellerId])
+}
+
+model Package {
+  id           String @id @default(uuid())
+  gigId        String
+  gig          Gig    @relation(fields: [gigId], references: [id], onDelete: Cascade)
+  tier         Tier
+  title        String
+  description  String
+  // القاعدة #4 من CLAUDE.md: لا Float للمال. نخزّن الهللات كـ Int.
+  priceMinor   Int
+  currency     String @default("SAR")
+  deliveryDays Int
+  revisions    Int
+  features     String[]
+
+  @@unique([gigId, tier])
+}
+
+enum GigStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+}
+
+enum AiDisclosure {
+  HUMAN
+  AI_ASSISTED
+  AI_GENERATED
+}
+
+enum Tier {
+  BASIC
+  STANDARD
+  PREMIUM
 }
