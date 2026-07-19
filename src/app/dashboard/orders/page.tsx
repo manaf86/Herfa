@@ -8,6 +8,8 @@ import {
   Wallet,
   User,
   Package as PackageIcon,
+  Info,
+  Loader2,
 } from "lucide-react";
 import {
   orders,
@@ -16,11 +18,44 @@ import {
   type Order,
   type OrderStatus,
 } from "../../../data/orders";
+import RealOrderCard, {
+  type RealOrder,
+} from "@/components/dashboard/RealOrderCard";
 
 type TabKey = "all" | OrderStatus;
 
 export default function OrdersPage() {
   const [tab, setTab] = useState<TabKey>("all");
+  const [realOrders, setRealOrders] = useState<RealOrder[] | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
+
+  // اجلب طلباتي الحقيقية + مُعرّف المستخدم الحالي (لتحديد "أنا مشترٍ أم بائع").
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [meRes, ordersRes] = await Promise.all([
+          fetch("/api/auth/me", { credentials: "same-origin" }),
+          fetch("/api/orders", { credentials: "same-origin" }),
+        ]);
+        if (!cancelled && meRes.ok) {
+          const d = await meRes.json();
+          setMeId(d.user?.id ?? null);
+        }
+        if (!cancelled && ordersRes.ok) {
+          const d = await ordersRes.json();
+          setRealOrders(d.orders ?? []);
+        } else if (!cancelled) {
+          setRealOrders([]);
+        }
+      } catch {
+        if (!cancelled) setRealOrders([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(
     () => (tab === "all" ? orders : orders.filter((o) => o.status === tab)),
@@ -40,6 +75,86 @@ export default function OrdersPage() {
           كل طلباتك النشطة والمكتملة في مكان واحد.
         </p>
       </header>
+
+      {/* ═══ الطلبات الحقيقية من قاعدة البيانات ═══ */}
+      <section className="mb-8">
+        <div className="mb-3 flex items-baseline gap-2">
+          <h2
+            className="text-lg font-bold"
+            style={{ color: "var(--heading)" }}
+          >
+            طلباتك
+          </h2>
+          {realOrders && (
+            <span
+              className="text-xs"
+              style={{ color: "var(--muted)" }}
+            >
+              {realOrders.length} طلب حقيقي
+            </span>
+          )}
+        </div>
+
+        {realOrders === null ? (
+          <div
+            className="flex items-center gap-2 rounded-2xl p-6 text-sm"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px dashed var(--border)",
+              color: "var(--muted)",
+            }}
+          >
+            <Loader2 className="h-4 w-4 animate-spin" />
+            جارٍ جلب طلباتك…
+          </div>
+        ) : realOrders.length === 0 ? (
+          <div
+            className="rounded-2xl p-6 text-sm"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px dashed var(--border)",
+              color: "var(--muted)",
+            }}
+          >
+            ليس لديك طلبات بعد. عندما تبدأ طلباً من صفحة خدمة، سيظهر هنا.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {realOrders.map((o) => (
+              <RealOrderCard key={o.id} order={o} meId={meId ?? ""} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ═══ أمثلة توضيحية — بيانات وهمية للاستعراض ═══ */}
+      {/*
+        ملاحظة: هذا القسم مؤقّت لعرض تصميم كل حالات دورة الحياة قبل امتلاء
+        قاعدة البيانات. سيختفي حين تصبح الطلبات الحقيقية كافية.
+      */}
+      <div
+        className="mb-4 flex items-start gap-2 rounded-xl p-3 text-sm"
+        style={{
+          backgroundColor: "var(--info-tint)",
+          border: "1px solid var(--info)",
+          color: "var(--ink)",
+        }}
+      >
+        <Info
+          className="mt-0.5 h-4 w-4 shrink-0"
+          style={{ color: "var(--info)" }}
+        />
+        <span className="leading-relaxed">
+          <span
+            className="font-bold"
+            style={{ color: "var(--info)" }}
+          >
+            أمثلة توضيحية —
+          </span>{" "}
+          البطاقات أدناه بيانات عرض لكل حالات الطلب. ستختفي حين تصبح لديك
+          طلبات حقيقية كافية.
+        </span>
+      </div>
 
       {/* Tabs */}
       <div
