@@ -41,13 +41,13 @@ const STATUS_META: Record<Status, { label: string; fg: string; bg: string }> = {
   },
   AWAITING_REQUIREMENTS: {
     label: "بانتظار المتطلبات",
-    fg: "var(--accent)",
-    bg: "var(--accent-tint)",
-  },
-  IN_PROGRESS: {
-    label: "قيد التنفيذ",
     fg: "var(--info)",
     bg: "var(--info-tint)",
+  },
+  IN_PROGRESS: {
+    label: "قيد التنفيذ ⏱",
+    fg: "var(--accent)",
+    bg: "var(--accent-tint)",
   },
   DELIVERED: {
     label: "بانتظار الاعتماد",
@@ -55,24 +55,24 @@ const STATUS_META: Record<Status, { label: string; fg: string; bg: string }> = {
     bg: "var(--accent-tint)",
   },
   REVISION_REQUESTED: {
-    label: "تعديل مطلوب",
+    label: "طُلب تعديل",
     fg: "var(--warn)",
     bg: "var(--warn-tint)",
   },
   ACCEPTED: {
-    label: "معتمد",
+    label: "مكتمل ✓",
     fg: "var(--success)",
     bg: "var(--success-tint)",
   },
   COMPLETED: {
-    label: "مكتمل",
+    label: "مكتمل ✓",
     fg: "var(--success)",
     bg: "var(--success-tint)",
   },
   CANCELLED: {
     label: "ملغى",
-    fg: "var(--alert)",
-    bg: "var(--alert-tint)",
+    fg: "var(--muted)",
+    bg: "rgba(148,148,148,0.12)",
   },
 };
 

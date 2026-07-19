@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +17,11 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
+  CheckCheck,
+  RefreshCcw,
+  Truck,
+  X,
+  Info,
 } from "lucide-react";
 import SiteHeader from "@/components/shared/SiteHeader";
 
@@ -23,6 +34,8 @@ type Status =
   | "ACCEPTED"
   | "COMPLETED"
   | "CANCELLED";
+
+type ViewerRole = "buyer" | "seller";
 
 type Party = { id: string; name: string; avatarLetter: string };
 
@@ -61,48 +74,66 @@ type Order = {
   messages: Message[];
 };
 
-const STATUS_META: Record<Status, { label: string; fg: string; bg: string }> = {
-  PENDING_PAYMENT: {
-    label: "بانتظار الدفع",
-    fg: "var(--muted)",
-    bg: "rgba(148,148,148,0.12)",
-  },
-  AWAITING_REQUIREMENTS: {
-    label: "بانتظار المتطلبات",
-    fg: "var(--accent)",
-    bg: "var(--accent-tint)",
-  },
-  IN_PROGRESS: {
-    label: "قيد التنفيذ",
-    fg: "var(--info)",
-    bg: "var(--info-tint)",
-  },
-  DELIVERED: {
-    label: "سُلّم — بانتظار الاعتماد",
-    fg: "var(--accent)",
-    bg: "var(--accent-tint)",
-  },
-  REVISION_REQUESTED: {
-    label: "تعديل مطلوب",
-    fg: "var(--warn)",
-    bg: "var(--warn-tint)",
-  },
-  ACCEPTED: {
-    label: "معتمد",
-    fg: "var(--success)",
-    bg: "var(--success-tint)",
-  },
-  COMPLETED: {
-    label: "مكتمل",
-    fg: "var(--success)",
-    bg: "var(--success-tint)",
-  },
-  CANCELLED: {
-    label: "ملغى",
-    fg: "var(--alert)",
-    bg: "var(--alert-tint)",
-  },
-};
+/**
+ * الملصق والألوان تعتمد على منظور المشاهد (شخصي "لك" أم عام).
+ * نظام التصميم لا يحوي بنفسجياً — نستخدم --info/--accent/--warn/--success/--muted.
+ */
+function statusMeta(
+  status: Status,
+  role: ViewerRole,
+): { label: string; fg: string; bg: string } {
+  switch (status) {
+    case "PENDING_PAYMENT":
+      return {
+        label: "بانتظار الدفع",
+        fg: "var(--muted)",
+        bg: "rgba(148,148,148,0.12)",
+      };
+    case "AWAITING_REQUIREMENTS":
+      return {
+        label: role === "buyer" ? "بانتظار متطلباتك" : "بانتظار متطلبات العميل",
+        fg: "var(--info)",
+        bg: "var(--info-tint)",
+      };
+    case "IN_PROGRESS":
+      return {
+        label: "قيد التنفيذ ⏱",
+        fg: "var(--accent)",
+        bg: "var(--accent-tint)",
+      };
+    case "DELIVERED":
+      return {
+        label:
+          role === "buyer" ? "بانتظار اعتمادك" : "بانتظار اعتماد العميل",
+        fg: "var(--accent)",
+        bg: "var(--accent-tint)",
+      };
+    case "REVISION_REQUESTED":
+      return {
+        label: "طُلب تعديل",
+        fg: "var(--warn)",
+        bg: "var(--warn-tint)",
+      };
+    case "ACCEPTED":
+      return {
+        label: "مكتمل ✓",
+        fg: "var(--success)",
+        bg: "var(--success-tint)",
+      };
+    case "COMPLETED":
+      return {
+        label: "مكتمل ✓",
+        fg: "var(--success)",
+        bg: "var(--success-tint)",
+      };
+    case "CANCELLED":
+      return {
+        label: "ملغى",
+        fg: "var(--muted)",
+        bg: "rgba(148,148,148,0.12)",
+      };
+  }
+}
 
 const TIER_LABEL: Record<Order["package"]["tier"], string> = {
   BASIC: "الأساسية",
@@ -115,6 +146,7 @@ export default function OrderPage() {
   const orderId = params?.id ?? "";
 
   const [order, setOrder] = useState<Order | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const load = useCallback(
@@ -144,11 +176,32 @@ export default function OrderPage() {
     [orderId],
   );
 
+  // نجلب المستخدم مرّة واحدة لتحديد الدور (مشترٍ/بائع) في هذا الطلب.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "same-origin",
+        });
+        if (!cancelled && res.ok) {
+          const d = await res.json();
+          setMeId(d.user?.id ?? null);
+        }
+      } catch {
+        // نتجاهل — الصفحة تعمل بلا الدور، لكن الأزرار المحدَّدة للدور لن تظهر.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     void load();
   }, [load]);
 
-  // Polling للرسائل كل 5 ثوانٍ (بدل WebSocket مؤقتاً).
+  // Polling كل 5 ثوانٍ (بدل WebSocket مؤقتاً).
   useEffect(() => {
     if (!order) return;
     if (order.status === "CANCELLED" || order.status === "COMPLETED") return;
@@ -202,13 +255,14 @@ export default function OrderPage() {
     );
   }
 
-  const status = STATUS_META[order.status];
+  const role: ViewerRole = meId === order.sellerId ? "seller" : "buyer";
+  const meta = statusMeta(order.status, role);
   const amountSar = (order.amountMinor / 100).toLocaleString("en-US");
 
   return (
     <PageShell>
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
-        {/* ═══ اليمين: تفاصيل الطلب + المتطلبات/العدّاد ═══ */}
+        {/* ═══ اليمين: تفاصيل الطلب + الإجراءات + المتطلبات/العدّاد ═══ */}
         <main className="min-w-0 space-y-6">
           <section
             className="rounded-2xl p-6"
@@ -227,13 +281,13 @@ export default function OrderPage() {
               </span>
               <span
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold"
-                style={{ backgroundColor: status.bg, color: status.fg }}
+                style={{ backgroundColor: meta.bg, color: meta.fg }}
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: status.fg }}
+                  style={{ backgroundColor: meta.fg }}
                 />
-                {status.label}
+                {meta.label}
               </span>
             </div>
 
@@ -243,10 +297,7 @@ export default function OrderPage() {
             >
               {order.gig.title}
             </h1>
-            <p
-              className="mt-1 text-sm"
-              style={{ color: "var(--muted)" }}
-            >
+            <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
               الباقة {TIER_LABEL[order.package.tier]} · {order.package.title} ·{" "}
               <span
                 className="font-bold tabular-nums"
@@ -280,12 +331,17 @@ export default function OrderPage() {
             </div>
           </section>
 
-          {/* الحالة النشطة */}
-          {order.status === "AWAITING_REQUIREMENTS" && (
+          {/* الإجراءات المتاحة حسب الدور والحالة */}
+          <ActionsPanel
+            order={order}
+            role={role}
+            onDone={() => void load()}
+          />
+
+          {order.status === "AWAITING_REQUIREMENTS" && role === "buyer" && (
             <RequirementsForm
               orderId={order.id}
               deliveryDays={order.package.deliveryDays}
-              isBuyer={order.buyerId === order.buyer.id}
               onSubmitted={() => void load()}
             />
           )}
@@ -294,10 +350,9 @@ export default function OrderPage() {
             <Countdown dueAtIso={order.dueAt} />
           )}
 
-          {(order.status === "IN_PROGRESS" || order.status === "DELIVERED") &&
-            order.requirements && (
-              <ReadOnlyReqs requirements={order.requirements} />
-            )}
+          {order.requirements && order.status !== "AWAITING_REQUIREMENTS" && (
+            <ReadOnlyReqs requirements={order.requirements} />
+          )}
         </main>
 
         {/* ═══ اليسار: الشات ═══ */}
@@ -328,7 +383,408 @@ function PageShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ═══════════ نموذج المتطلبات ═══════════
+/* ═══════════ Actions ═══════════ */
+
+function ActionsPanel({
+  order,
+  role,
+  onDone,
+}: {
+  order: Order;
+  role: ViewerRole;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState<null | "deliver" | "accept" | "revision" | "cancel">(
+    null,
+  );
+  const [err, setErr] = useState<string | null>(null);
+  const [revisionOpen, setRevisionOpen] = useState(false);
+  const [deliverNote, setDeliverNote] = useState("");
+
+  const call = async (
+    kind: "deliver" | "accept" | "cancel",
+    path: string,
+    body?: unknown,
+  ) => {
+    if (busy) return;
+    setErr(null);
+    setBusy(kind);
+    try {
+      // للتسليم: إن كتب البائع ملاحظة، نبعثها كرسالة أولاً.
+      if (kind === "deliver" && deliverNote.trim().length > 0) {
+        await fetch(`/api/orders/${order.id}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: deliverNote.trim() }),
+          credentials: "same-origin",
+        });
+      }
+
+      const res = await fetch(`/api/orders/${order.id}/${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "تعذّر تنفيذ الإجراء");
+      setDeliverNote("");
+      onDone();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "خطأ غير متوقّع");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const submitRevision = async (reason: string) => {
+    if (busy) return;
+    setErr(null);
+    setBusy("revision");
+    try {
+      const res = await fetch(`/api/orders/${order.id}/revision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "تعذّر إرسال طلب التعديل");
+      setRevisionOpen(false);
+      onDone();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "خطأ غير متوقّع");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const s = order.status;
+  const showDeliver =
+    role === "seller" && (s === "IN_PROGRESS" || s === "REVISION_REQUESTED");
+  const showBuyerReview = role === "buyer" && s === "DELIVERED";
+  const showCancel = s === "AWAITING_REQUIREMENTS";
+  const showAcceptedInfo = s === "ACCEPTED";
+
+  // إخفاء البطاقة إن لم توجد إجراءات معروضة.
+  if (
+    !showDeliver &&
+    !showBuyerReview &&
+    !showCancel &&
+    !showAcceptedInfo
+  ) {
+    return null;
+  }
+
+  return (
+    <>
+      <section
+        className="rounded-2xl p-6"
+        style={{
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <h2
+          className="text-lg font-bold"
+          style={{ color: "var(--heading)" }}
+        >
+          الإجراءات المتاحة
+        </h2>
+
+        {err && (
+          <div
+            role="alert"
+            className="mt-3 flex items-center gap-1.5 rounded-xl p-2.5 text-xs"
+            style={{
+              backgroundColor: "var(--alert-tint)",
+              border: "1px solid var(--alert)",
+              color: "var(--alert)",
+            }}
+          >
+            <AlertCircle className="h-3.5 w-3.5" />
+            {err}
+          </div>
+        )}
+
+        {/* ── البائع: تسليم ── */}
+        {showDeliver && (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm" style={{ color: "var(--muted)" }}>
+              أرفق ملاحظة اختيارية للتسليم (تُرسَل رسالةً قبل التسليم):
+            </p>
+            <textarea
+              value={deliverNote}
+              onChange={(e) => setDeliverNote(e.target.value)}
+              rows={3}
+              placeholder="مثال: سلّمت المخرجات النهائية — راجع الملفات المصدرية."
+              className="w-full resize-y rounded-xl px-3 py-2 text-sm outline-none"
+              style={{
+                backgroundColor: "var(--bg)",
+                color: "var(--ink)",
+                border: "1px solid var(--border)",
+              }}
+            />
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => call("deliver", "deliver")}
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                backgroundColor: "var(--success)",
+                color: "#FFFFFF",
+              }}
+            >
+              {busy === "deliver" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Truck className="h-4 w-4" />
+              )}
+              {s === "REVISION_REQUESTED" ? "أعد التسليم" : "سلّم العمل"}
+            </button>
+          </div>
+        )}
+
+        {/* ── المشتري: مراجعة التسليم ── */}
+        {showBuyerReview && (
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => call("accept", "accept")}
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  backgroundColor: "var(--success)",
+                  color: "#FFFFFF",
+                }}
+              >
+                {busy === "accept" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCheck className="h-4 w-4" />
+                )}
+                اعتمد العمل
+              </button>
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => setRevisionOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  backgroundColor: "var(--accent)",
+                  color: "#0E3A46",
+                }}
+              >
+                <RefreshCcw className="h-4 w-4" />
+                اطلب تعديل
+              </button>
+            </div>
+            <p
+              className="flex items-center gap-1.5 text-xs"
+              style={{ color: "var(--muted)" }}
+            >
+              <Info className="h-3.5 w-3.5" />
+              لديك 5 أيام للمراجعة قبل الاعتماد التلقائي.
+            </p>
+          </div>
+        )}
+
+        {/* ── الإلغاء (فقط قبل بدء العمل) ── */}
+        {showCancel && (
+          <div
+            className={
+              showDeliver || showBuyerReview
+                ? "mt-4 border-t pt-4"
+                : "mt-4"
+            }
+            style={{ borderColor: "var(--border)" }}
+          >
+            <p
+              className="mb-2 text-xs"
+              style={{ color: "var(--muted)" }}
+            >
+              يمكن الإلغاء الآن قبل بدء العمل — استرداد كامل بلا أثر على أي طرف.
+            </p>
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => {
+                if (
+                  typeof window !== "undefined" &&
+                  !window.confirm("تأكيد إلغاء الطلب؟")
+                )
+                  return;
+                void call("cancel", "cancel");
+              }}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                border: "1px solid var(--border)",
+                color: "var(--muted)",
+              }}
+            >
+              {busy === "cancel" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+              إلغاء الطلب
+            </button>
+          </div>
+        )}
+
+        {/* ── حالة القبول ── */}
+        {showAcceptedInfo && (
+          <div
+            className="mt-3 flex items-start gap-2 rounded-xl p-3 text-sm"
+            style={{
+              backgroundColor: "var(--success-tint)",
+              border: "1px solid var(--success)",
+              color: "var(--ink)",
+            }}
+          >
+            <CheckCircle2
+              className="mt-0.5 h-4 w-4 shrink-0"
+              style={{ color: "var(--success)" }}
+            />
+            <span>
+              <span
+                className="font-bold"
+                style={{ color: "var(--success)" }}
+              >
+                معتمد —
+              </span>{" "}
+              الطلب مكتمل. المال يمرّ بفترة تصفية 5 أيام قبل أن يتاح للسحب.
+            </span>
+          </div>
+        )}
+      </section>
+
+      {revisionOpen && (
+        <RevisionDialog
+          onCancel={() => setRevisionOpen(false)}
+          onSubmit={submitRevision}
+          busy={busy === "revision"}
+        />
+      )}
+    </>
+  );
+}
+
+function RevisionDialog({
+  onCancel,
+  onSubmit,
+  busy,
+}: {
+  onCancel: () => void;
+  onSubmit: (reason: string) => void;
+  busy: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    ref.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  const disabled = busy || reason.trim().length < 10;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="طلب تعديل"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl p-6"
+        style={{
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <h3
+            className="text-base font-bold"
+            style={{ color: "var(--heading)" }}
+          >
+            اطلب تعديلاً
+          </h3>
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="إغلاق"
+            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--surface-2)]"
+            style={{ color: "var(--muted)" }}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p
+          className="mt-1 text-xs"
+          style={{ color: "var(--muted)" }}
+        >
+          اشرح بدقّة ما الذي يحتاج تعديلاً حتى يفهم البائع طلبك.
+        </p>
+        <textarea
+          ref={ref}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={5}
+          minLength={10}
+          maxLength={500}
+          placeholder="مثال: الشعار جميل لكن أحتاج نسخة بألوان أفتح تناسب الغلاف الأبيض…"
+          className="mt-3 w-full resize-y rounded-xl px-3 py-2 text-sm outline-none"
+          style={{
+            backgroundColor: "var(--bg)",
+            color: "var(--ink)",
+            border: "1px solid var(--border)",
+          }}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="rounded-full px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-2)] disabled:opacity-60"
+            style={{
+              border: "1px solid var(--border)",
+              color: "var(--ink)",
+            }}
+          >
+            إلغاء
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onSubmit(reason.trim())}
+            className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-bold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              backgroundColor: "var(--accent)",
+              color: "#0E3A46",
+            }}
+          >
+            {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            أرسل طلب التعديل
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════ نموذج المتطلبات ═══════════ */
 
 function RequirementsForm({
   orderId,
@@ -337,7 +793,6 @@ function RequirementsForm({
 }: {
   orderId: string;
   deliveryDays: number;
-  isBuyer: boolean;
   onSubmitted: () => void;
 }) {
   const [value, setValue] = useState("");
@@ -390,8 +845,8 @@ function RequirementsForm({
           style={{ color: "var(--heading)" }}
         >
           {deliveryDays} أيام
-        </span>
-        {" "}من الآن.
+        </span>{" "}
+        من الآن.
       </p>
 
       <form onSubmit={submit} className="mt-4">
@@ -436,7 +891,7 @@ function RequirementsForm({
   );
 }
 
-// ═══════════ العدّاد التنازلي ═══════════
+/* ═══════════ العدّاد التنازلي ═══════════ */
 
 function Countdown({ dueAtIso }: { dueAtIso: string }) {
   const [now, setNow] = useState(() => Date.now());
@@ -535,7 +990,7 @@ function ReadOnlyReqs({ requirements }: { requirements: string }) {
   );
 }
 
-// ═══════════ الشات ═══════════
+/* ═══════════ الشات ═══════════ */
 
 function ChatPanel({
   orderId,

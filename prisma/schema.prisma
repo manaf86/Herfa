@@ -29,6 +29,7 @@ model User {
   buyerOrders   Order[]    @relation("buyer")
   sellerOrders  Order[]    @relation("seller")
   messages      Message[]
+  ledgerEntries LedgerEntry[]
 }
 
 enum UserRole {
@@ -147,6 +148,8 @@ model Order {
 
   events         OrderEvent[]
   messages       Message[]
+  payment        Payment?
+  ledgerEntries  LedgerEntry[]
 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -190,4 +193,82 @@ enum OrderStatus {
   ACCEPTED
   COMPLETED
   CANCELLED
+}
+
+// ═══════════ الدفتر المالي (Ledger) ═══════════
+// المرجع: CLAUDE.md §القاعدة 4:
+//   "كل حركة مالية: معاملة ذرية + مفتاح تفرّد (Idempotency Key) +
+//    سجل في `ledger` غير قابل للتعديل (append-only)."
+//
+// append-only بالتصميم:
+//   - لا @updatedAt (لا تحديث بعد الإنشاء).
+//   - أي تصحيح يُكتَب صفاً جديداً معاكساً (compensating entry).
+//   - Chargeback مثالاً: لا نُحدّث الصف الأصلي — نضيف CHARGEBACK جديداً
+//     ثم SELLER_PROTECTION من صندوق الحماية (§القاعدة 14).
+
+model LedgerEntry {
+  id             String      @id @default(uuid())
+  orderId        String?
+  order          Order?      @relation(fields: [orderId], references: [id])
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+  type           LedgerType
+  state          FundState
+  amountMinor    Int
+  currency       String      @default("SAR")
+  // Idempotency: مانع الازدواج عند إعادة إرسال webhook أو استدعاء API.
+  idempotencyKey String      @unique
+  providerRef    String?
+  note           String?
+  createdAt      DateTime    @default(now())
+
+  @@index([userId, state])
+  @@index([orderId])
+}
+
+enum LedgerType {
+  ESCROW_HOLD           // حجز في الخزنة عند دفع المشتري
+  ESCROW_RELEASE        // إفراج للبائع عند الاعتماد
+  COMMISSION            // عمولة المنصة
+  BUYER_FEE             // رسوم مشترٍ (إن وُجدت)
+  TIP                   // إكرامية اختيارية للبائع
+  PAYOUT                // سحب البائع لحساب بنكي
+  REFUND                // استرداد كامل/جزئي للمشتري
+  CHARGEBACK            // اعتراض بطاقي من بنك المشتري
+  SELLER_PROTECTION     // تعويض البائع من صندوق الحماية (§القاعدة 14)
+}
+
+enum FundState {
+  IN_ESCROW             // محجوز في الخزنة
+  PENDING_CLEARANCE     // بعد ACCEPTED — 5 أيام قبل السحب (§القاعدة 12)
+  AVAILABLE             // متاح للسحب
+  WITHDRAWN             // سُحب إلى البنك
+  REVERSED              // عُكس (chargeback / refund)
+}
+
+// ═══════════ الدفع — استدعاء مزوّد مرخّص فقط ═══════════
+// CLAUDE.md §القاعدة 9: "لا تكتب كود دفع أو ضمان. المنصة تستدعي مزوّداً مرخّصاً فقط."
+// نحفظ هنا فقط: طلب الدفع، معرّفه لدى المزوّد، وحالة الرد.
+// المنطق المالي (تشفير البطاقة، PSD2، 3DS) في مزوّد الدفع لا عندنا.
+
+model Payment {
+  id                 String        @id @default(uuid())
+  orderId            String        @unique
+  order              Order         @relation(fields: [orderId], references: [id])
+  provider           String        @default("moyasar")
+  providerPaymentId  String?       @unique
+  status             PaymentStatus @default(INITIATED)
+  amountMinor        Int
+  currency           String        @default("SAR")
+  idempotencyKey     String        @unique
+  metadata           Json          @default("{}")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  INITIATED
+  PAID
+  FAILED
+  REFUNDED
 }
