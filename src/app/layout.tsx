@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Inter } from "next/font/google";
 import "./globals.css";
+import FloatingActions from "@/components/shared/FloatingActions";
 
 const ibmPlex = IBM_Plex_Sans_Arabic({
   variable: "--font-plex-arabic",
@@ -66,7 +67,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {children}
+        <FloatingActions />
+      </body>
     </html>
   );
 }

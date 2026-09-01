@@ -111,6 +111,15 @@ h1, h2, h3, h4, h5, h6 {
   color: #0E3A46;
 }
 
+@keyframes faPopIn {
+  0%   { opacity: 0; transform: scale(0.6) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.fa-btn {
+  animation: faPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 @keyframes floatA {
   0%, 100% { transform: translateY(0) rotate(-1deg); }
   50%      { transform: translateY(-10px) rotate(-1deg); }
