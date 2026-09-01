@@ -11,9 +11,16 @@ const detailSelect = {
   title: true,
   description: true,
   categoryId: true,
+  serviceType: true,
   tags: true,
   status: true,
   aiDisclosure: true,
+  coverImage: true,
+  gallery: true,
+  deliverables: true,
+  faqs: true,
+  requirements: true,
+  rejectionNote: true,
   createdAt: true,
   updatedAt: true,
   sellerId: true,
@@ -72,7 +79,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
 // ═══════════ PATCH /api/gigs/[slug] — تغيير الحالة ═══════════
 
 const patchInput = z.object({
-  status: z.enum(["DRAFT", "PUBLISHED", "PAUSED"]),
+  status: z.enum(["PUBLISHED", "PAUSED"]),
 });
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
@@ -120,10 +127,10 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     );
   }
 
-  // انتقالات مسموحة: DRAFT ↔ PUBLISHED، PUBLISHED ↔ PAUSED.
-  // (نمنع PAUSED → DRAFT دون سبب واضح لتفادي إعادة التسويق كأنها جديدة.)
+  // انتقالات مسموحة عبر هذا المسار: PUBLISHED ↔ PAUSED فقط.
+  // DRAFT → PENDING_REVIEW عبر /submit، وPENDING_REVIEW → PUBLISHED/REJECTED عبر /review
+  // (لوحة مراجعة الإدارة) — كلاهما مسار مقصود منفصل، لا هذا المسار العام.
   const allowed: Record<string, string[]> = {
-    DRAFT: ["PUBLISHED"],
     PUBLISHED: ["PAUSED"],
     PAUSED: ["PUBLISHED"],
   };

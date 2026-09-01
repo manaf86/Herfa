@@ -6,7 +6,9 @@ import { Plus, LayoutGrid, Loader2, AlertCircle } from "lucide-react";
 import { CATEGORY_LABELS, type CategorySlug } from "@/lib/categories";
 
 type Tier = "BASIC" | "STANDARD" | "PREMIUM";
-type Status = "DRAFT" | "PUBLISHED" | "PAUSED";
+type Status = "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "PAUSED" | "REJECTED";
+
+const MAX_GIGS = 5;
 
 type PackageSummary = {
   tier: Tier;
@@ -21,6 +23,7 @@ type Gig = {
   title: string;
   categoryId: string;
   status: Status;
+  rejectionNote: string | null;
   seller: { id: string; name: string; avatarLetter: string };
   packages: PackageSummary[];
   _count: { packages: number };
@@ -35,6 +38,11 @@ const STATUS_META: Record<
     fg: "var(--muted)",
     bg: "rgba(148,148,148,0.12)",
   },
+  PENDING_REVIEW: {
+    label: "قيد المراجعة",
+    fg: "var(--accent)",
+    bg: "var(--accent-tint)",
+  },
   PUBLISHED: {
     label: "منشورة",
     fg: "var(--success)",
@@ -42,8 +50,13 @@ const STATUS_META: Record<
   },
   PAUSED: {
     label: "موقوفة",
-    fg: "var(--accent)",
-    bg: "var(--accent-tint)",
+    fg: "var(--info)",
+    bg: "var(--info-tint)",
+  },
+  REJECTED: {
+    label: "مرفوضة",
+    fg: "var(--alert)",
+    bg: "var(--alert-tint)",
   },
 };
 
@@ -97,43 +110,55 @@ export default function MyGigsPage() {
 
   const loading = gigs === null;
   const empty = gigs !== null && gigs.length === 0;
+  // العدّاد يحتسب كل الحالات عدا REJECTED — مطابق لحد الخادم في POST /api/gigs.
+  const countedGigs = gigs ? gigs.filter((g) => g.status !== "REJECTED").length : 0;
+  const atLimit = gigs !== null && countedGigs >= MAX_GIGS;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1
-            className="text-2xl font-bold sm:text-3xl"
+            className="flex items-center gap-2 text-2xl font-bold sm:text-3xl"
             style={{ color: "var(--heading)" }}
           >
-            خدماتي
+            خدماتك
             {gigs && (
               <span
-                className="ms-2 rounded-full px-2 py-0.5 text-sm tabular-nums"
+                className="rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums"
                 style={{
-                  backgroundColor: "var(--surface-2)",
-                  color: "var(--muted)",
+                  backgroundColor: atLimit ? "var(--alert-tint)" : "var(--accent-tint)",
+                  color: atLimit ? "var(--alert)" : "var(--accent)",
                 }}
               >
-                {gigs.length}
+                {countedGigs}/{MAX_GIGS}
               </span>
             )}
           </h1>
           <p className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>
-            كل خدماتك المنشورة والمسودات في مكان واحد.
+            كل خدماتك — مسودات وقيد المراجعة ومنشورة — في مكان واحد.
           </p>
         </div>
-        <Link
-          href="/dashboard/gigs/new"
-          className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5"
-          style={{
-            backgroundColor: "var(--btn-primary-bg)",
-            color: "var(--btn-primary-fg)",
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          أنشئ خدمة جديدة
-        </Link>
+        <div className="flex flex-col items-end gap-1.5">
+          <Link
+            href={atLimit ? "#" : "/dashboard/gigs/new"}
+            aria-disabled={atLimit}
+            onClick={(e) => atLimit && e.preventDefault()}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:translate-y-0"
+            style={{
+              backgroundColor: "var(--btn-primary-bg)",
+              color: "var(--btn-primary-fg)",
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            أضف خدمة
+          </Link>
+          {atLimit && (
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              وصلت الحد الأقصى — احذف أو أوقف خدمة لإضافة جديدة.
+            </p>
+          )}
+        </div>
       </header>
 
       {err && (
@@ -232,6 +257,15 @@ function GigMgmtCard({
         {gig.title}
       </h3>
 
+      {gig.status === "REJECTED" && gig.rejectionNote && (
+        <p
+          className="mt-2 rounded-lg p-2 text-[11px] leading-relaxed"
+          style={{ backgroundColor: "var(--alert-tint)", color: "var(--alert)" }}
+        >
+          سبب الرفض: {gig.rejectionNote}
+        </p>
+      )}
+
       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <MetaLine label="أقل سعر">
           {cheapest
@@ -255,21 +289,6 @@ function GigMgmtCard({
         >
           عرض
         </Link>
-        {gig.status === "DRAFT" && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onChangeStatus(gig.slug, "PUBLISHED")}
-            className="inline-flex flex-1 items-center justify-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-transform hover:-translate-y-0.5 disabled:opacity-60"
-            style={{
-              backgroundColor: "var(--success)",
-              color: "#FFFFFF",
-            }}
-          >
-            {busy && <Loader2 className="h-3 w-3 animate-spin" />}
-            نشر
-          </button>
-        )}
         {gig.status === "PUBLISHED" && (
           <button
             type="button"
@@ -373,7 +392,7 @@ function EmptyState() {
           className="text-base font-bold"
           style={{ color: "var(--heading)" }}
         >
-          لم تنشر أي خدمة بعد
+          ابدأ بإضافة خدمتك الأولى
         </p>
         <p
           className="mt-2 text-sm leading-relaxed"

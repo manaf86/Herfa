@@ -68,9 +68,17 @@ model Gig {
   title        String
   description  String
   categoryId   String
+  serviceType  String?
   tags         String[]
   status       GigStatus    @default(DRAFT)
   aiDisclosure AiDisclosure @default(HUMAN)
+  coverImage   String?
+  gallery      String[]     @default([])
+  // "ماذا تقدّم بالضبط؟" — قائمة مخرجات تظهر في الخطوة 3 من معالج الإنشاء ثم في صفحة الخدمة.
+  deliverables String[]     @default([])
+  faqs         Json         @default("[]")
+  requirements String?
+  rejectionNote String?
   packages     Package[]
   orders       Order[]
   conversations Conversation[]
@@ -101,8 +109,10 @@ model Package {
 
 enum GigStatus {
   DRAFT
+  PENDING_REVIEW
   PUBLISHED
   PAUSED
+  REJECTED
 }
 
 enum AiDisclosure {

@@ -20,22 +20,45 @@ const packageInput = z.object({
   features: z.array(z.string().min(1).max(120)).max(10).default([]),
 });
 
+// صورة/معرض كـ data URL مؤقتاً (Base64) — TODO: رفع حقيقي لـ S3/MinIO لاحقاً.
+const dataUrlImage = z
+  .string()
+  .trim()
+  .regex(/^data:image\/(png|jpeg|jpg|webp|gif);base64,/, "صورة غير صالحة");
+
+const faqInput = z.object({
+  question: z.string().trim().min(3).max(200),
+  answer: z.string().trim().min(3).max(1000),
+});
+
 const gigCreateInput = z.object({
   title: z.string().trim().min(10).max(100),
   description: z.string().trim().min(50).max(2000),
   categoryId: z.enum(CATEGORY_SLUGS),
+  serviceType: z.string().trim().min(1).max(60).optional(),
   tags: z.array(z.string().min(1).max(40)).max(5).default([]),
   aiDisclosure: z
     .enum(["HUMAN", "AI_ASSISTED", "AI_GENERATED"])
     .default("HUMAN"),
+  coverImage: dataUrlImage.optional(),
+  gallery: z.array(dataUrlImage).max(5).default([]),
+  deliverables: z.array(z.string().trim().min(1).max(160)).max(20).default([]),
+  faqs: z.array(faqInput).max(5).default([]),
+  requirements: z.string().trim().max(2000).optional(),
   packages: z.array(packageInput).min(1).max(3),
 });
 
 const listQuery = z.object({
   category: z.enum(CATEGORY_SLUGS).optional(),
+  status: z
+    .enum(["DRAFT", "PENDING_REVIEW", "PUBLISHED", "PAUSED", "REJECTED"])
+    .optional(),
   limit: z.coerce.number().int().min(1).max(100).default(36),
   seller: z.enum(["me"]).optional(),
 });
+
+// حد الخدمات لكل محترف — كل الحالات عدا REJECTED تُحتسب (docs المرحلة الأولى).
+const MAX_GIGS_PER_SELLER = 5;
 
 // حقول العرض للسوق (بلا حقول حسّاسة).
 const listSelect = {
@@ -43,8 +66,11 @@ const listSelect = {
   slug: true,
   title: true,
   categoryId: true,
+  serviceType: true,
   status: true,
   aiDisclosure: true,
+  coverImage: true,
+  rejectionNote: true,
   createdAt: true,
   updatedAt: true,
   seller: {
@@ -79,7 +105,7 @@ export async function GET(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { category, limit, seller } = parsed.data;
+  const { category, status, limit, seller } = parsed.data;
 
   let sellerId: string | undefined;
   let where: Prisma.GigWhereInput = { status: "PUBLISHED" };
@@ -95,6 +121,18 @@ export async function GET(req: NextRequest) {
     }
     sellerId = user.id;
     where = { sellerId };
+    if (status) where.status = status;
+  } else if (status) {
+    // تصفية بالحالة عبر كل البائعين — تُستخدم للوحة مراجعة الإدارة.
+    // TODO: قيّد هذا المسار بدور ADMIN حين يُضاف نظام الأدوار.
+    const user = await getCurrentUser(req.headers.get("cookie"));
+    if (!user) {
+      return NextResponse.json(
+        { error: "يجب تسجيل الدخول" },
+        { status: 401 },
+      );
+    }
+    where = { status };
   }
 
   if (category) where.categoryId = category;
@@ -151,6 +189,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // حد 5 خدمات لكل محترف — كل الحالات عدا REJECTED تُحتسب.
+  const activeGigCount = await prisma.gig.count({
+    where: { sellerId: user.id, status: { not: "REJECTED" } },
+  });
+  if (activeGigCount >= MAX_GIGS_PER_SELLER) {
+    return NextResponse.json(
+      {
+        error:
+          "وصلت الحد الأقصى (5 خدمات). احذف أو أوقف خدمة لإضافة جديدة.",
+      },
+      { status: 403 },
+    );
+  }
+
   // نولّد slug ونعيد المحاولة إن حدث تصادم نادر (nanoid يقلّل الاحتمال).
   let attempts = 0;
   while (attempts < 3) {
@@ -164,8 +216,14 @@ export async function POST(req: NextRequest) {
           title: data.title,
           description: data.description,
           categoryId: data.categoryId,
+          serviceType: data.serviceType,
           tags: data.tags,
           aiDisclosure: data.aiDisclosure,
+          coverImage: data.coverImage,
+          gallery: data.gallery,
+          deliverables: data.deliverables,
+          faqs: data.faqs,
+          requirements: data.requirements,
           status: "DRAFT",
           packages: {
             create: data.packages.map((p) => ({
