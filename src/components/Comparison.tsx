@@ -1,133 +1,96 @@
 import { Check, X } from "lucide-react";
 import Reveal from "./Reveal";
 
-type Row = { label: string; herfa: string | boolean; others: string | boolean };
+type Row = { feature: string; herfa: string; others: string };
 
 const ROWS: Row[] = [
-  { label: "العمولة", herfa: "15٪ → 6٪", others: "20٪ ثابتة" },
-  { label: "دعم بشري في النزاع", herfa: true, others: false },
-  { label: "حق الاستئناف", herfa: true, others: false },
-  { label: "واجهة عربية أصلية", herfa: true, others: false },
-  { label: "وسائل دفع محلية", herfa: true, others: false },
-  { label: "مساحة عمل للمشروع", herfa: true, others: false },
+  { feature: "العمولة", herfa: "تبدأ 15٪ وتنخفض إلى 6٪", others: "20٪ ثابتة" },
+  { feature: "دعم بشري في النزاع", herfa: "فريق مختصّ يراجع كل حالة", others: "ردود آلية وقوالب جاهزة" },
+  { feature: "حق الاستئناف", herfa: "استئناف بشري مضمون", others: "قرار نهائي بلا مراجعة" },
+  { feature: "واجهة عربية أصلية", herfa: "عربية كاملة بتصميم RTL", others: "ترجمة جزئية" },
+  { feature: "وسائل دفع محلية", herfa: "مدى، Apple Pay، تحويل بنكي", others: "بطاقات دولية فقط" },
+  { feature: "مساحة عمل للمشروع", herfa: "لوحات ومعالم مالية مدمجة", others: "محادثة فقط" },
 ];
-
-function Cell({ value }: { value: string | boolean }) {
-  if (value === true) {
-    return (
-      <span
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-        style={{
-          backgroundColor: "rgba(27,127,90,0.15)",
-          color: "var(--success)",
-        }}
-      >
-        <Check className="h-4 w-4" strokeWidth={3} />
-      </span>
-    );
-  }
-  if (value === false) {
-    return (
-      <span
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-        style={{
-          backgroundColor: "rgba(180,35,24,0.12)",
-          color: "var(--alert)",
-        }}
-      >
-        <X className="h-4 w-4" strokeWidth={3} />
-      </span>
-    );
-  }
-  return (
-    <span className="text-sm font-bold" style={{ color: "var(--heading)" }}>
-      {value}
-    </span>
-  );
-}
 
 export default function Comparison() {
   return (
     <section
-      className="py-20 sm:py-24"
-      style={{ backgroundColor: "var(--surface-2)" }}
+      style={{
+        backgroundColor: "var(--surface-2)",
+        paddingBlock: "clamp(56px, 8vw, 96px)",
+        paddingInline: 24,
+      }}
     >
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold sm:text-4xl">
-              حِرفة مقابل المنصات الأخرى
-            </h2>
-            <p className="mt-3 text-base" style={{ color: "var(--muted)" }}>
-              الفرق ليس في الميزات فقط، بل في كيف تُعامَل حين يحدث خلاف.
-            </p>
-          </div>
+      <div style={{ maxWidth: 1000, marginInline: "auto" }}>
+        <Reveal style={{ textAlign: "center", maxWidth: 640, marginInline: "auto", marginBlockEnd: 44 }}>
+          <h2 className="font-bold" style={{ fontSize: "clamp(26px, 4vw, 40px)", color: "var(--heading)", margin: "0 0 12px", lineHeight: 1.2 }}>
+            مقارنة صريحة
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: 17, margin: 0, lineHeight: 1.6 }}>
+            لا نخفي الفروق. هذه حِرفة مقابل المنصات الأخرى.
+          </p>
         </Reveal>
 
-        <Reveal>
-          <div
-            className="mt-12 overflow-hidden rounded-2xl shadow-sm"
+        <Reveal style={{ overflowX: "auto", maxWidth: 900, marginInline: "auto" }}>
+          <table
+            className="w-full"
             style={{
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              minWidth: 640,
               backgroundColor: "var(--surface)",
               border: "1px solid var(--border)",
+              borderRadius: 16,
+              overflow: "hidden",
             }}
           >
-            <table className="w-full text-start">
-              <thead>
-                <tr
-                  style={{
-                    backgroundColor: "var(--surface-2)",
-                    borderBottom: "1px solid var(--border)",
-                  }}
+            <thead>
+              <tr>
+                <th className="text-start font-semibold" style={{ padding: "18px 20px", fontSize: 15, color: "var(--muted)" }}>
+                  الميزة
+                </th>
+                <th
+                  className="text-start"
+                  style={{ padding: "18px 20px", color: "#fff", backgroundColor: "var(--btn-primary-bg)", fontSize: 16 }}
                 >
-                  <th
-                    className="px-6 py-4 text-start text-sm font-bold"
-                    style={{ color: "var(--muted)" }}
+                  حِرفة
+                </th>
+                <th className="text-start" style={{ padding: "18px 20px", color: "var(--muted)", fontSize: 16 }}>
+                  منصات أخرى
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {ROWS.map((row) => (
+                <tr key={row.feature}>
+                  <td
+                    className="font-semibold"
+                    style={{ padding: "16px 20px", borderBlockStart: "1px solid var(--border)", color: "var(--ink)" }}
                   >
-                    المعيار
-                  </th>
-                  <th
-                    className="px-6 py-4 text-center text-sm font-bold"
-                    style={{ color: "var(--heading)" }}
-                  >
-                    حِرفة
-                  </th>
-                  <th
-                    className="px-6 py-4 text-center text-sm font-bold"
-                    style={{ color: "var(--muted)" }}
-                  >
-                    منصات أخرى
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((r, i) => (
-                  <tr
-                    key={r.label}
+                    {row.feature}
+                  </td>
+                  <td
                     style={{
-                      borderBottom:
-                        i < ROWS.length - 1
-                          ? "1px solid var(--border)"
-                          : "none",
+                      padding: "16px 20px",
+                      borderBlockStart: "1px solid var(--border)",
+                      backgroundColor: "color-mix(in srgb, var(--btn-primary-bg) 5%, var(--surface))",
                     }}
                   >
-                    <td
-                      className="px-6 py-4 text-sm font-medium"
-                      style={{ color: "var(--ink)" }}
-                    >
-                      {r.label}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Cell value={r.herfa} />
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Cell value={r.others} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    <span className="inline-flex items-start gap-2" style={{ color: "var(--ink)", fontSize: 15 }}>
+                      <Check className="h-4 w-4 shrink-0" style={{ color: "var(--success)" }} />
+                      {row.herfa}
+                    </span>
+                  </td>
+                  <td style={{ padding: "16px 20px", borderBlockStart: "1px solid var(--border)" }}>
+                    <span className="inline-flex items-start gap-2" style={{ color: "var(--muted)", fontSize: 15 }}>
+                      <X className="h-4 w-4 shrink-0" style={{ color: "var(--alert)" }} />
+                      {row.others}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Reveal>
       </div>
     </section>

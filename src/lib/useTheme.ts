@@ -16,12 +16,17 @@ export function useTheme() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // الافتراضي دائماً "light" ما لم توجد قيمة محفوظة صالحة صراحةً.
+    // نقبل "dark" أو "light" فقط — أي قيمة أخرى (تالفة/قديمة/غير معروفة)
+    // تُعامَل كأنها غير موجودة وتنكس إلى "light".
     let initial: Theme = "light";
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "dark") initial = "dark";
+      if (saved === "dark" || saved === "light") {
+        initial = saved;
+      }
     } catch {
-      // localStorage غير متاح — نتجاهل
+      // localStorage غير متاح — نتجاهل ونستخدم الافتراضي.
     }
     apply(initial);
     setThemeState(initial);

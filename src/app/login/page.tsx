@@ -621,7 +621,7 @@ export default function LoginPage() {
 
               <div className="mt-3">
                 <Link
-                  href="/#categories"
+                  href="/#skills"
                   className="text-sm font-medium transition-colors hover:underline"
                   style={{ color: "var(--heading)" }}
                 >

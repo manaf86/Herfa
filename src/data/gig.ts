@@ -44,8 +44,8 @@ export const gigSeller = {
 };
 
 export const breadcrumb = [
-  { label: "التصميم والجرافيك", href: "/#categories" },
-  { label: "تصميم الشعارات والهوية", href: "/#categories" },
+  { label: "التصميم والجرافيك", href: "/#skills" },
+  { label: "تصميم الشعارات والهوية", href: "/#skills" },
 ];
 
 export const gigTitle =

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Bell, Package } from "lucide-react";
+import { Search, Bell, Package, Sun, Moon } from "lucide-react";
 import ThemeToggleButton from "./ThemeToggleButton";
 import { marketplaceUser } from "../../data/services";
+import { useTheme } from "../../lib/useTheme";
 
 type Variant = "marketing" | "app";
 
@@ -13,14 +14,128 @@ type Props = {
   loggedIn?: boolean;
 };
 
-const MARKETING_LINKS = [
-  { label: "تصفّح المهارات", href: "/marketplace" },
-  { label: "كيف يعمل", href: "/#how" },
-  { label: "لماذا حِرفة", href: "/#why" },
-  { label: "للشركات", href: "/#business" },
-];
-
 export default function SiteHeader({ variant, loggedIn = false }: Props) {
+  const { theme, toggle } = useTheme();
+
+  if (variant === "marketing") {
+    return (
+      <header
+        style={{
+          position: 'sticky',
+          insetBlockStart: 0,
+          zIndex: 50,
+          background: 'var(--header-bg)',
+          color: '#fff',
+          borderBlockEnd: '1px solid rgba(255,255,255,.08)',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1180,
+            marginInline: 'auto',
+            padding: '14px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 18,
+            flexWrap: 'wrap',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              fontWeight: 700,
+              fontSize: 22,
+              color: '#fff',
+            }}
+          >
+            <span
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 9,
+                background: 'var(--accent)',
+                color: '#0E3A46',
+                display: 'grid',
+                placeItems: 'center',
+                fontWeight: 800,
+                fontSize: 19,
+              }}
+            >
+              ح
+            </span>
+            حِرفة
+          </Link>
+
+          <nav
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 22,
+              marginInlineStart: 28,
+              fontSize: 15,
+            }}
+          >
+            <a href="#skills" style={{ color: 'rgba(255,255,255,.82)' }}>تصفّح المهارات</a>
+            <a href="#how" style={{ color: 'rgba(255,255,255,.82)' }}>كيف يعمل</a>
+            <a href="#why" style={{ color: 'rgba(255,255,255,.82)' }}>لماذا حِرفة</a>
+            <a href="#business" style={{ color: 'rgba(255,255,255,.82)' }}>للشركات</a>
+          </nav>
+
+          <div
+            style={{
+              marginInlineStart: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label="تبديل الوضع الداكن"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,.22)',
+                background: 'transparent',
+                color: '#fff',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
+            <Link href="/login" style={{ color: '#fff', fontSize: 15, fontWeight: 500 }}>
+              تسجيل الدخول
+            </Link>
+
+            <Link
+              href="/login?tab=register"
+              style={{
+                background: 'var(--accent)',
+                color: '#0E3A46',
+                padding: '10px 18px',
+                borderRadius: 10,
+                fontWeight: 600,
+                fontSize: 15,
+              }}
+            >
+              انضم
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // ═════════ variant === "app" — بلا أي تغيير ═════════
   const brandHref = loggedIn || variant === "app" ? "/marketplace" : "/";
 
   return (
@@ -31,7 +146,10 @@ export default function SiteHeader({ variant, loggedIn = false }: Props) {
         borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
+      <div
+        className="mx-auto flex h-16 max-w-7xl px-4 sm:px-6 lg:px-8 gap-3 sm:gap-6"
+        style={{ alignItems: "center" }}
+      >
         {/* Brand */}
         <Link
           href={brandHref}
@@ -44,92 +162,45 @@ export default function SiteHeader({ variant, loggedIn = false }: Props) {
           >
             ح
           </span>
-          <span
-            className={`text-xl font-bold tracking-tight ${
-              variant === "app" ? "hidden sm:inline" : ""
-            }`}
-          >
+          <span className="hidden text-xl font-bold tracking-tight sm:inline">
             حِرفة
           </span>
         </Link>
 
-        {variant === "marketing" ? (
-          <MarketingCenter />
-        ) : (
-          <AppCenter />
-        )}
+        <AppCenter />
 
-        {/* Right side (visual left in RTL): theme + auth/user */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {variant === "app" && (
-            <>
-              <IconLink href="/dashboard/messages" label="الرسائل">
-                <Bell className="h-5 w-5" />
-              </IconLink>
-              <IconLink href="/dashboard" label="طلباتي">
-                <Package className="h-5 w-5" />
-              </IconLink>
-            </>
-          )}
+        <div
+          className="flex shrink-0 items-center gap-1 sm:gap-2"
+          style={{ marginInlineStart: "auto" }}
+        >
+          <IconLink href="/dashboard/messages" label="الرسائل">
+            <Bell className="h-5 w-5" />
+          </IconLink>
+          <IconLink href="/dashboard" label="طلباتي">
+            <Package className="h-5 w-5" />
+          </IconLink>
 
           <ThemeToggleButton />
 
-          {variant === "marketing" ? (
-            <>
-              <Link
-                href="/login"
-                className="hidden rounded-full border border-white/25 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 sm:inline-flex"
-              >
-                تسجيل الدخول
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-full px-4 py-2 text-sm font-bold transition-transform hover:-translate-y-0.5"
-                style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
-              >
-                انضم
-              </Link>
-            </>
-          ) : (
-            <Link
-              href="/dashboard"
-              className="ms-1 hidden items-center gap-2 rounded-full px-2.5 py-1.5 transition-colors hover:bg-white/10 md:flex"
-              style={{ border: "1px solid rgba(255,255,255,0.18)" }}
-              aria-label="لوحة القيادة"
+          <Link
+            href="/dashboard"
+            className="ms-1 hidden items-center gap-2 rounded-full px-2.5 py-1.5 transition-colors hover:bg-white/10 md:flex"
+            style={{ border: "1px solid rgba(255,255,255,0.18)" }}
+            aria-label="لوحة القيادة"
+          >
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
+              style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
             >
-              <span
-                className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
-                style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
-              >
-                {marketplaceUser.initial}
-              </span>
-              <span className="text-xs font-medium text-white/90">
-                {marketplaceUser.name}
-              </span>
-            </Link>
-          )}
+              {marketplaceUser.initial}
+            </span>
+            <span className="text-xs font-medium text-white/90">
+              {marketplaceUser.name}
+            </span>
+          </Link>
         </div>
       </div>
     </header>
-  );
-}
-
-function MarketingCenter() {
-  return (
-    <nav
-      className="hidden flex-1 items-center justify-center gap-8 md:flex"
-      aria-label="التنقّل الرئيسي"
-    >
-      {MARKETING_LINKS.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="text-sm font-medium text-white/85 transition-colors hover:text-white"
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
   );
 }
 

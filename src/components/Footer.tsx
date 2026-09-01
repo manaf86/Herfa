@@ -6,37 +6,36 @@ const COLS: Col[] = [
   {
     title: "المنصة",
     links: [
-      { label: "تصفّح المهارات", href: "#categories" },
-      { label: "كيف تعمل", href: "#how" },
-      { label: "الأسعار", href: "#" },
+      { label: "تصفّح المهارات", href: "/marketplace" },
+      { label: "كيف يعمل", href: "#how" },
+      { label: "الأسعار والعمولة", href: "#" },
       { label: "للشركات", href: "#business" },
     ],
   },
   {
-    title: "المحترفون",
+    title: "السياسات",
     links: [
-      { label: "انضم كمحترف", href: "#" },
-      { label: "مؤشر حِرفة", href: "#" },
-      { label: "أكاديمية حِرفة", href: "#" },
-      { label: "دليل التسعير", href: "#" },
+      { label: "الشروط والأحكام", href: "#" },
+      { label: "سياسة الخصوصية", href: "#" },
+      { label: "سياسة النزاعات", href: "#" },
+      { label: "حق الاستئناف", href: "#" },
+    ],
+  },
+  {
+    title: "الامتثال",
+    links: [
+      { label: "الامتثال التنظيمي", href: "#" },
+      { label: "المراجعة الشرعية", href: "#" },
+      { label: "الأمان وحماية الدفع", href: "#" },
     ],
   },
   {
     title: "الشركة",
     links: [
-      { label: "من نحن", href: "#" },
-      { label: "المدوّنة", href: "#" },
+      { label: "عن حِرفة", href: "#" },
       { label: "الوظائف", href: "#" },
-      { label: "تواصل", href: "#" },
-    ],
-  },
-  {
-    title: "قانوني",
-    links: [
-      { label: "شروط الاستخدام", href: "#" },
-      { label: "سياسة الخصوصية", href: "#" },
-      { label: "سياسة النزاعات", href: "#" },
-      { label: "الامتثال الشرعي", href: "#" },
+      { label: "المدوّنة", href: "#" },
+      { label: "تواصل معنا", href: "#" },
     ],
   },
 ];
@@ -45,66 +44,64 @@ export default function Footer() {
   return (
     <footer
       style={{
-        backgroundColor: "var(--surface-2)",
-        borderTop: "1px solid var(--border)",
+        backgroundColor: "var(--surface)",
+        borderBlockStart: "1px solid var(--border)",
+        paddingBlock: "56px 28px",
+        paddingInline: 24,
       }}
     >
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-5">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
+      <div style={{ maxWidth: 1180, marginInline: "auto" }}>
+        <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 32 }}>
+          <div style={{ minWidth: 200 }}>
+            <Link href="/" className="flex items-center gap-2.5 font-bold" style={{ fontSize: 20, color: "var(--heading)" }}>
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-bold"
-                style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
+                className="grid place-items-center font-extrabold"
+                style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: "var(--accent)", color: "#0E3A46" }}
               >
                 ح
               </span>
-              <span
-                className="text-xl font-bold"
-                style={{ color: "var(--heading)" }}
-              >
-                حِرفة
-              </span>
+              حِرفة
             </Link>
-            <p
-              className="mt-4 max-w-xs text-sm leading-relaxed"
-              style={{ color: "var(--muted)" }}
-            >
-              سوق الخدمات المهنية العربي — الأول عربياً، القادر عالمياً.
+            <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "14px 0 0", maxWidth: 260 }}>
+              سوق الخدمات المهنية العربي — مالك مضمون، وقواعدك واضحة، ولغتك ليست عائقاً.
             </p>
           </div>
 
           {COLS.map((col) => (
             <div key={col.title}>
-              <p
-                className="mb-4 text-sm font-bold"
-                style={{ color: "var(--heading)" }}
-              >
+              <div className="font-semibold" style={{ color: "var(--heading)", fontSize: 15, marginBlockEnd: 12 }}>
                 {col.title}
-              </p>
-              <ul className="space-y-3">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    <a
-                      href={l.href}
-                      className="text-sm transition-colors hover:text-[var(--accent)]"
-                      style={{ color: "var(--muted)" }}
-                    >
-                      {l.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              </div>
+              {col.links.map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="block transition-colors hover:text-[var(--accent)]"
+                  style={{ color: "var(--muted)", fontSize: 14, paddingBlock: 6 }}
+                >
+                  {l.label}
+                </a>
+              ))}
             </div>
           ))}
         </div>
 
         <div
-          className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs sm:flex-row"
-          style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+          className="flex flex-wrap items-center justify-between gap-3"
+          style={{
+            borderBlockStart: "1px solid var(--border)",
+            marginBlockStart: 40,
+            paddingBlockStart: 24,
+            color: "var(--muted)",
+            fontSize: 13,
+          }}
         >
-          <p>© 2026 حِرفة. جميع الحقوق محفوظة.</p>
-          <p>صُنعت بحرفية في الرياض · دبي · القاهرة</p>
+          <div>© 2026 حِرفة — جميع الحقوق محفوظة.</div>
+          <div className="flex items-center gap-4">
+            <span>العربية</span>
+            <span>·</span>
+            <span>English</span>
+          </div>
         </div>
       </div>
     </footer>

@@ -43,6 +43,14 @@ export default function RootLayout({
       className={`${ibmPlex.variable} ${inter.variable}`}
     >
       <head>
+        {/*
+          FOUC-prevention: يُنفَّذ قبل hydration لتجنّب وميض من الفاتح للداكن.
+          المنطق متطابق مع src/lib/useTheme.ts:
+            - saved === 'dark'  → نضبط data-theme='dark'
+            - أي قيمة أخرى (بما فيها 'light'، null، أو قيمة تالفة قديمة)
+              = لا نفعل شيئاً = الفاتح الافتراضي (:root).
+          try/catch للأمان (localStorage قد يُرفَض في وضع خاص/iframe).
+        */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -1,43 +1,26 @@
-import {
-  FileText,
-  Clock,
-  Users,
-  UserCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, FileText, CalendarClock, Users, PhoneCall, type LucideIcon } from "lucide-react";
 import Reveal from "./Reveal";
 
 type Feat = { icon: LucideIcon; title: string; desc: string };
 
 const FEATS: Feat[] = [
-  {
-    icon: FileText,
-    title: "فواتير نظامية",
-    desc: "فواتير ضريبية معتمدة تحمل شعارك، جاهزة للمحاسبة والامتثال.",
-  },
-  {
-    icon: Clock,
-    title: "دفع آجل",
-    desc: "نت-30 أو نت-60 للشركات المؤهّلة. المحترف يقبض فوراً، وأنت تدفع لاحقاً.",
-  },
-  {
-    icon: Users,
-    title: "فرق وصلاحيات",
-    desc: "أعضاء متعدّدون بأدوار مختلفة — مدير مشروع، مراجع، محاسب — بصلاحيات دقيقة.",
-  },
-  {
-    icon: UserCheck,
-    title: "مدير حساب مخصّص",
-    desc: "شخص واحد يعرف حسابك، يتابع مشاريعك، ويستجيب خلال ساعات لا أيام.",
-  },
+  { icon: FileText, title: "فواتير نظامية", desc: "فواتير ضريبية متوافقة تُصدر تلقائياً لكل عملية." },
+  { icon: CalendarClock, title: "دفع آجل", desc: "شروط سداد حتى 60 يوماً للفرق المعتمدة." },
+  { icon: Users, title: "فرق وصلاحيات", desc: "أدوار ومستويات موافقة تناسب هيكل فريقك." },
+  { icon: PhoneCall, title: "مدير حساب", desc: "مدير مخصّص ودعم ذو أولوية على مدار الساعة." },
 ];
 
 export default function ForBusiness() {
   return (
     <section
       id="business"
-      className="relative overflow-hidden py-20 sm:py-28"
-      style={{ backgroundColor: "#0E3A46" }}
+      className="relative overflow-hidden"
+      style={{
+        backgroundColor: "#0E3A46",
+        color: "#EAF3F4",
+        paddingBlock: "clamp(56px, 8vw, 96px)",
+        paddingInline: 24,
+      }}
     >
       <div
         aria-hidden
@@ -48,73 +31,54 @@ export default function ForBusiness() {
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div
+        className="relative grid items-center"
+        style={{ maxWidth: 1180, marginInline: "auto", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40 }}
+      >
         <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-white/90"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.15)",
-              }}
-            >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: "var(--accent)" }}
-              />
-              حِرفة للشركات
-            </span>
-            <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
-              فريق مرن يعمل معك، على مقاسك
-            </h2>
-            <p className="mt-3 text-base text-white/80">
-              أدوات مؤسسية لإدارة الاستقلاليين على نطاق واسع — بامتثال محلي كامل.
-            </p>
-          </div>
+          <span
+            className="inline-flex items-center gap-2 rounded-full text-xs"
+            style={{ border: "1px solid rgba(212,162,76,0.5)", color: "#D4A24C", padding: "6px 14px" }}
+          >
+            حِرفة للشركات
+          </span>
+          <h2 className="font-bold" style={{ fontSize: "clamp(28px, 4vw, 42px)", margin: "18px 0 16px", color: "#fff", lineHeight: 1.2 }}>
+            حلول التوظيف الحر لفرقك
+          </h2>
+          <p style={{ color: "rgba(234,243,244,0.75)", fontSize: 17, lineHeight: 1.7, margin: "0 0 26px" }}>
+            أدوات مالية وإدارية مصمّمة للشركات التي توظّف محترفين مستقلين على نطاق واسع.
+          </p>
+          <a
+            href="#"
+            className="inline-flex items-center gap-2.5 rounded-xl font-bold transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#D4A24C", color: "#0E3A46", padding: "15px 28px", fontSize: 16 }}
+          >
+            تحدّث إلى المبيعات
+            <ArrowLeft className="h-4 w-4" />
+          </a>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
           {FEATS.map((f, i) => {
             const Icon = f.icon;
             return (
-              <Reveal key={f.title} delay={i * 80}>
-                <article
-                  className="h-full rounded-2xl p-6"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                  }}
+              <Reveal key={f.title} delay={i * 80} style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: 18 }}>
+                <span
+                  className="grid place-items-center shrink-0"
+                  style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(212,162,76,0.16)", color: "#D4A24C" }}
                 >
-                  <span
-                    className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
-                    style={{
-                      backgroundColor: "rgba(212,162,76,0.18)",
-                      color: "var(--accent)",
-                    }}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="text-base font-bold text-white">{f.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/75">
-                    {f.desc}
-                  </p>
-                </article>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="font-semibold" style={{ color: "#fff", margin: "12px 0 4px" }}>
+                  {f.title}
+                </div>
+                <div style={{ color: "rgba(234,243,244,0.7)", fontSize: 14, lineHeight: 1.6 }}>
+                  {f.desc}
+                </div>
               </Reveal>
             );
           })}
         </div>
-
-        <Reveal>
-          <div className="mt-12 flex justify-center">
-            <button
-              type="button"
-              className="rounded-full px-8 py-3.5 text-sm font-bold shadow-lg transition-transform hover:-translate-y-0.5"
-              style={{ backgroundColor: "var(--accent)", color: "#0E3A46" }}
-            >
-              تواصل مع المبيعات
-            </button>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

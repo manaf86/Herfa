@@ -7,6 +7,7 @@ type Props = {
   as?: "div" | "section" | "article";
   delay?: number;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 export default function Reveal({
@@ -14,6 +15,7 @@ export default function Reveal({
   as = "div",
   delay = 0,
   className = "",
+  style,
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -42,6 +44,7 @@ export default function Reveal({
     <Tag
       ref={ref as React.Ref<HTMLDivElement>}
       className={`reveal ${visible ? "is-visible" : ""} ${className}`}
+      style={style}
     >
       {children}
     </Tag>

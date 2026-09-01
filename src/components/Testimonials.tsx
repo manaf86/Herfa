@@ -1,127 +1,107 @@
-import { Star } from "lucide-react";
 import Reveal from "./Reveal";
 
 type Story = {
+  initial: string;
   name: string;
   role: string;
-  quote: string;
   metric: string;
-  metricLabel: string;
-  initial: string;
+  quote: string;
+  imgLabel: string;
 };
 
 const STORIES: Story[] = [
   {
-    name: "سارة العتيبي",
-    role: "مصممة هوية بصرية",
-    quote:
-      "خلال ستة أشهر، تحوّلت من مشاريع متفرقة إلى دخل شهري ثابت. مساحة العمل ساعدتني أنظم كل شيء.",
-    metric: "3×",
-    metricLabel: "نمو الدخل",
     initial: "س",
+    name: "سارة العتيبي",
+    role: "مصمّمة هوية بصرية",
+    metric: "3× نموّ الدخل",
+    quote: "«خلال ستة أشهر ضاعفت دخلي ثلاث مرات. الخزنة أعطتني الثقة للتعامل مع عملاء جدد دون قلق.»",
+    imgLabel: "صورة العميلة",
   },
   {
-    name: "خالد منصور",
-    role: "مطوّر ويب",
-    quote:
-      "الخزنة أزالت التوتر تماماً. أبدأ العمل وأنا أعلم أن المال محجوز — أركّز على الكود فقط.",
-    metric: "47",
-    metricLabel: "مشروعاً منجزاً",
     initial: "خ",
+    name: "خالد منصور",
+    role: "مطوّر واجهات",
+    metric: "47 مشروعاً",
+    quote: "«أنجزت 47 مشروعاً بتقييم 5 من 5. مساحة العمل المدمجة وفّرت عليّ عناء الأدوات المتفرقة.»",
+    imgLabel: "صورة العميل",
   },
   {
-    name: "نورة الحربي",
-    role: "كاتبة محتوى",
-    quote:
-      "الجسر اللغوي فتح لي أبواب عملاء عالميين. أراسلهم بالعربية، تصل الرسالة بالإنجليزية، والعكس.",
-    metric: "98٪",
-    metricLabel: "معدّل رضا العملاء",
-    initial: "ن",
+    initial: "ل",
+    name: "ليلى حدّاد",
+    role: "مترجمة معتمدة",
+    metric: "أول عميل دولي",
+    quote: "«الجسر اللغوي فتح لي سوقاً عالمياً. حصلت على أول عميل دولي خلال أسبوع من انضمامي.»",
+    imgLabel: "صورة العميلة",
   },
 ];
 
 export default function Testimonials() {
   return (
     <section
-      className="py-20 sm:py-24"
-      style={{ backgroundColor: "var(--bg)" }}
+      style={{
+        paddingBlock: "clamp(56px, 8vw, 96px)",
+        paddingInline: 24,
+      }}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold sm:text-4xl">قصص نجاح حقيقية</h2>
-            <p className="mt-3 text-base" style={{ color: "var(--muted)" }}>
-              محترفون بنَوا مسيرتهم على حِرفة — بأرقامهم وكلماتهم.
-            </p>
-          </div>
+      <div style={{ maxWidth: 1180, marginInline: "auto" }}>
+        <Reveal style={{ textAlign: "center", maxWidth: 640, marginInline: "auto", marginBlockEnd: 44 }}>
+          <h2 className="font-bold" style={{ fontSize: "clamp(26px, 4vw, 40px)", color: "var(--heading)", margin: "0 0 12px", lineHeight: 1.2 }}>
+            قصص نجاح
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: 17, margin: 0, lineHeight: 1.6 }}>
+            محترفون بنوا مسارهم المهني على حِرفة.
+          </p>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {STORIES.map((s, i) => (
-            <Reveal key={s.name} delay={i * 100}>
-              <article
-                className="flex h-full flex-col rounded-2xl p-6 shadow-sm transition-transform hover:-translate-y-1"
+        <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+          {STORIES.map((st, i) => (
+            <Reveal key={st.name} delay={i * 100} className="flex flex-col overflow-hidden" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16 }}>
+              <div
+                aria-hidden
+                className="grid place-items-center"
                 style={{
-                  backgroundColor: "var(--surface)",
-                  border: "1px solid var(--border)",
+                  height: 170,
+                  backgroundImage:
+                    "repeating-linear-gradient(135deg, var(--surface-2), var(--surface-2) 10px, var(--bg) 10px, var(--bg) 20px)",
+                  color: "var(--muted)",
+                  fontFamily: "ui-monospace, Menlo, monospace",
+                  fontSize: 12,
+                  letterSpacing: "0.05em",
                 }}
               >
-                <div className="mb-4 flex items-center gap-3">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold"
+                {st.imgLabel}
+              </div>
+              <div className="flex flex-1 flex-col gap-3.5" style={{ padding: 24 }}>
+                <div className="font-bold" style={{ fontSize: 28, color: "var(--accent)" }}>
+                  {st.metric}
+                </div>
+                <p className="flex-1" style={{ margin: 0, color: "var(--ink)", lineHeight: 1.7 }}>
+                  {st.quote}
+                </p>
+                <div className="flex items-center gap-3" style={{ borderBlockStart: "1px solid var(--border)", paddingBlockStart: 16 }}>
+                  <span
+                    className="grid shrink-0 place-items-center font-bold"
                     style={{
-                      backgroundColor: "rgba(212,162,76,0.15)",
-                      color: "var(--accent)",
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(212,162,76,0.18)",
+                      color: "var(--heading)",
                     }}
                   >
-                    {s.initial}
-                  </div>
+                    {st.initial}
+                  </span>
                   <div>
-                    <p
-                      className="text-sm font-bold"
-                      style={{ color: "var(--heading)" }}
-                    >
-                      {s.name}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--muted)" }}>
-                      {s.role}
-                    </p>
+                    <div className="font-semibold" style={{ color: "var(--ink)" }}>
+                      {st.name}
+                    </div>
+                    <div className="text-sm" style={{ color: "var(--muted)" }}>
+                      {st.role}
+                    </div>
                   </div>
                 </div>
-
-                <div className="mb-3 flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, k) => (
-                    <Star
-                      key={k}
-                      className="h-4 w-4"
-                      fill="var(--accent)"
-                      style={{ color: "var(--accent)" }}
-                    />
-                  ))}
-                </div>
-
-                <p
-                  className="flex-1 text-sm leading-relaxed"
-                  style={{ color: "var(--ink)" }}
-                >
-                  &ldquo;{s.quote}&rdquo;
-                </p>
-
-                <div
-                  className="mt-5 flex items-baseline gap-2 border-t pt-4"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  <span
-                    className="text-2xl font-bold"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    {s.metric}
-                  </span>
-                  <span className="text-xs" style={{ color: "var(--muted)" }}>
-                    {s.metricLabel}
-                  </span>
-                </div>
-              </article>
+              </div>
             </Reveal>
           ))}
         </div>

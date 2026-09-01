@@ -4,6 +4,7 @@ import TrustBar from "../components/TrustBar";
 import Categories from "../components/Categories";
 import HowItWorks from "../components/HowItWorks";
 import WhyHerfa from "../components/WhyHerfa";
+import Infographic from "../components/Infographic";
 import Comparison from "../components/Comparison";
 import Testimonials from "../components/Testimonials";
 import ForBusiness from "../components/ForBusiness";
@@ -19,6 +20,7 @@ export default function Home() {
         <Categories />
         <HowItWorks />
         <WhyHerfa />
+        <Infographic />
         <Comparison />
         <Testimonials />
         <ForBusiness />
