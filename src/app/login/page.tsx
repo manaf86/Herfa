@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -111,7 +110,6 @@ function AppleIcon({ className }: { className?: string }) {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [status, setStatus] = useState<Status>("idle");
   const [fieldError, setFieldError] = useState<FieldError | null>(null);
@@ -129,9 +127,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status !== "success") return;
-    const t = setTimeout(() => router.push("/marketplace"), 2000);
+    // توجيه كامل (وليس router.push) يعيد تحميل الصفحة فيقرأ الكوكي herfa_session
+    // الذي حفظه الخادم للتو، ويضمن أن middleware يرى الجلسة الجديدة فوراً.
+    const t = setTimeout(() => {
+      window.location.href = "/marketplace";
+    }, 1500);
     return () => clearTimeout(t);
-  }, [status, router]);
+  }, [status]);
 
   // اقفل تمرير الصفحة كاملةً طوال بقاء صفحة الدخول ظاهرة
   // (يمنع body.min-h-screen في التخطيط الجذري من إظهار شريط تمرير).
