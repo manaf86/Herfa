@@ -2,20 +2,67 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ShieldCheck, Clock, RefreshCcw, Check } from "lucide-react";
+import { ShieldCheck, Clock, RefreshCcw, Check, Loader2, MessageCircle } from "lucide-react";
 import { packages, trustSignals, type PackageTier } from "../../data/gig";
+
+type ApiGigLite = { id: string; slug: string; seller: { id: string } };
 
 export default function PurchaseCard() {
   const [tier, setTier] = useState<PackageTier>("standard");
   const active = packages.find((p) => p.tier === tier)!;
   const params = useParams<{ slug?: string }>();
   const router = useRouter();
+  // useParams قد يُعيد المقطع مُرمَّزاً (percent-encoded) بدل فكّه — decodeURIComponent
+  // هنا آمن ولا-عملي (no-op) على أي سلسلة عربية غير مُرمَّزة أصلاً.
+  const slug = decodeURIComponent(params?.slug ?? "");
 
-  const handleContact = () => {
-    // TODO: لاحقاً — تحقّق من الجلسة، ثم إنشاء طلب حقيقي وفتح شات المتطلبات.
-    // في حِرفة: العدّاد يبدأ عند اكتمال المتطلبات، لا عند الدفع.
-    const slug = params?.slug ?? "";
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactErr, setContactErr] = useState<string | null>(null);
+
+  const handleOrderNow = () => {
     router.push(`/orders/new?gig=${encodeURIComponent(slug)}&package=${tier}`);
+  };
+
+  // "تواصل مع المحترف": يفتح محادثة قبل الشراء بدل الذهاب مباشرة لصفحة الطلب —
+  // يتفق الطرفان على التفاصيل أولاً، تماماً كما تنصّ docs/spec/site-flow.md.
+  const handleContact = async () => {
+    if (contactBusy) return;
+    setContactErr(null);
+    setContactBusy(true);
+    try {
+      const gigRes = await fetch(`/api/gigs/${encodeURIComponent(slug)}`, {
+        credentials: "same-origin",
+      });
+      if (!gigRes.ok) {
+        throw new Error("تعذّر جلب بيانات الخدمة.");
+      }
+      const gigData: { gig: ApiGigLite } = await gigRes.json();
+
+      const convRes = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellerId: gigData.gig.seller.id,
+          gigId: gigData.gig.id,
+        }),
+        credentials: "same-origin",
+      });
+
+      if (convRes.status === 401) {
+        router.push(`/login?next=${encodeURIComponent(`/gig/${slug}`)}`);
+        return;
+      }
+
+      const convData = await convRes.json().catch(() => ({}));
+      if (!convRes.ok) {
+        throw new Error(convData.error ?? "تعذّر بدء المحادثة.");
+      }
+
+      router.push(`/dashboard/messages/${convData.conversationId}`);
+    } catch (e) {
+      setContactErr(e instanceof Error ? e.message : "خطأ غير متوقّع");
+      setContactBusy(false);
+    }
   };
 
   return (
@@ -120,17 +167,46 @@ export default function PurchaseCard() {
           ))}
         </ul>
 
-        {/* Primary CTA */}
+        {/* تواصل أولاً (محادثة قبل الشراء) */}
         <button
           type="button"
           onClick={handleContact}
-          className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5"
+          disabled={contactBusy}
+          className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
           style={{
             backgroundColor: "var(--btn-primary-bg)",
             color: "var(--btn-primary-fg)",
           }}
         >
-          تواصل مع المصمّمة
+          {contactBusy ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <MessageCircle className="h-4 w-4" aria-hidden />
+          )}
+          تواصل مع المحترف
+        </button>
+
+        {contactErr && (
+          <p
+            role="alert"
+            className="mt-2 text-center text-xs"
+            style={{ color: "var(--alert)" }}
+          >
+            {contactErr}
+          </p>
+        )}
+
+        {/* طلب مباشر — لمن يريد الشراء دون محادثة مسبقة */}
+        <button
+          type="button"
+          onClick={handleOrderNow}
+          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-colors hover:bg-[var(--surface-2)]"
+          style={{
+            border: "1px solid var(--border)",
+            color: "var(--ink)",
+          }}
+        >
+          اطلب الخدمة الآن
         </button>
 
         <p

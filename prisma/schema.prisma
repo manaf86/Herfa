@@ -30,6 +30,9 @@ model User {
   sellerOrders  Order[]    @relation("seller")
   messages      Message[]
   ledgerEntries LedgerEntry[]
+  convBuyer      Conversation[]  @relation("convBuyer")
+  convSeller     Conversation[]  @relation("convSeller")
+  directMessages DirectMessage[]
 }
 
 enum UserRole {
@@ -70,6 +73,7 @@ model Gig {
   aiDisclosure AiDisclosure @default(HUMAN)
   packages     Package[]
   orders       Order[]
+  conversations Conversation[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
@@ -193,6 +197,44 @@ enum OrderStatus {
   ACCEPTED
   COMPLETED
   CANCELLED
+}
+
+// ═══════════ التواصل قبل الشراء (Conversation) ═══════════
+// محادثة تسبق إنشاء الطلب — ليتفق الطرفان قبل الدفع (site-flow.md:
+// "يستقبل طلباً → يتفقان في شات الموقع → يبدأ التنفيذ").
+// مستقلة عن Message/Order أعلاه: تلك محادثة *داخل* طلب قائم،
+// وهذه محادثة *قبل* وجود طلب أصلاً.
+
+model Conversation {
+  id         String    @id @default(uuid())
+  buyerId    String
+  buyer      User      @relation("convBuyer", fields: [buyerId], references: [id])
+  sellerId   String
+  seller     User      @relation("convSeller", fields: [sellerId], references: [id])
+  gigId      String?
+  gig        Gig?      @relation(fields: [gigId], references: [id])
+  messages   DirectMessage[]
+  // آخر وقت فتح كل طرف لهذه المحادثة — أساس حساب "غير المقروء" في GET /api/conversations.
+  buyerLastReadAt  DateTime?
+  sellerLastReadAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([buyerId, sellerId, gigId])
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model DirectMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 // ═══════════ الدفتر المالي (Ledger) ═══════════
